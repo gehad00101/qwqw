@@ -46,10 +46,10 @@ export const CodeDisplay: FC<CodeDisplayProps> = ({ id, title, description, code
                 <CardDescription className="pt-2">{description}</CardDescription>
             </div>
             <div className="flex gap-1">
-                <Button variant="ghost" size="icon" onClick={handleDownload} aria-label="Download code">
+                <Button variant="ghost" size="icon" onClick={handleDownload} aria-label="تنزيل الكود">
                     <Download className="h-5 w-5" />
                 </Button>
-                <Button variant="ghost" size="icon" onClick={() => onSaveToggle(id)} aria-label={isSaved ? "Remove from book" : "Save to book"}>
+                <Button variant="ghost" size="icon" onClick={() => onSaveToggle(id)} aria-label={isSaved ? "إزالة من المفضلة" : "حفظ في المفضلة"}>
                     {isSaved ? <BookmarkCheck className="h-5 w-5 text-primary" /> : <Bookmark className="h-5 w-5" />}
                 </Button>
             </div>
@@ -58,11 +58,11 @@ export const CodeDisplay: FC<CodeDisplayProps> = ({ id, title, description, code
       <CardContent className="flex-grow flex flex-col min-h-0">
         <div className="relative bg-muted rounded-md flex-grow">
           <ScrollArea className="absolute inset-0">
-            <pre className="p-4 text-sm font-code text-muted-foreground">
+            <pre className="p-4 text-sm font-code text-muted-foreground text-left" dir="ltr">
                 <code>{code}</code>
             </pre>
           </ScrollArea>
-          <Button variant="ghost" size="icon" onClick={handleCopy} className="absolute top-2 right-2 h-8 w-8 bg-muted hover:bg-background" aria-label="Copy code">
+          <Button variant="ghost" size="icon" onClick={handleCopy} className="absolute top-2 left-2 h-8 w-8 bg-muted hover:bg-background" aria-label="نسخ الكود">
             {hasCopied ? <Check className="h-4 w-4 text-accent" /> : <ClipboardCopy className="h-4 w-4" />}
           </Button>
         </div>

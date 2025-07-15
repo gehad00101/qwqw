@@ -9,73 +9,68 @@ export interface AccountingFunction {
 export const ACCOUNTING_FUNCTIONS: AccountingFunction[] = [
   {
     id: '1',
-    name: 'Calculate Gross Profit',
-    description: 'Calculates the gross profit by subtracting the cost of goods sold (COGS) from total revenue. This is a key indicator of profitability.',
-    code: `function calculateGrossProfit(revenue, cogs) {
-  if (revenue < 0 || cogs < 0) {
-    throw new Error("Revenue and COGS must be non-negative.");
-  }
-  return revenue - cogs;
+    name: 'إسبريسو كلاسيكي',
+    description: 'جرعة مركزة من القهوة تُحضّر عن طريق دفع الماء الساخن المضغوط عبر حبوب البن المطحونة جيدًا.',
+    code: `function makeEspresso(coffeeGrams, waterMl) {
+  const strength = coffeeGrams / waterMl;
+  console.log(\`Espresso ready! Strength: \${strength.toFixed(2)}\`);
+  return { coffeeGrams, waterMl, type: 'Espresso' };
 }
 
-const revenue = 500000;
-const cogs = 200000;
-const grossProfit = calculateGrossProfit(revenue, cogs);
-console.log(\`Gross Profit: \${grossProfit}\`);`,
-    tags: ['profitability', 'income statement'],
+makeEspresso(18, 36);`,
+    tags: ['ساخن', 'مركز', 'أساسي'],
   },
   {
     id: '2',
-    name: 'Calculate Net Income',
-    description: 'Determines the net income by subtracting all expenses, including taxes and interest, from all revenues.',
-    code: `function calculateNetIncome(grossProfit, operatingExpenses, taxRate, interest) {
-  const earningsBeforeTax = grossProfit - operatingExpenses - interest;
-  const netIncome = earningsBeforeTax * (1 - taxRate);
-  return netIncome;
+    name: 'كابتشينو',
+    description: 'مزيج متناغم من الإسبريسو والحليب المبخر ورغوة الحليب الغنية.',
+    code: `function makeCappuccino(espressoShots, milkMl) {
+  const espresso = makeEspresso(18 * espressoShots, 36 * espressoShots);
+  const steamedMilk = milkMl * 0.6;
+  const foam = milkMl * 0.4;
+  console.log(\`Cappuccino prepared with \${steamedMilk}ml steamed milk and \${foam}ml foam.\`);
+  return { espresso, steamedMilk, foam };
 }
 
-const grossProfit = 300000;
-const operatingExpenses = 150000;
-const interest = 10000;
-const taxRate = 0.21; // 21%
-const netIncome = calculateNetIncome(grossProfit, operatingExpenses, taxRate, interest);
-console.log(\`Net Income: \${netIncome.toFixed(2)}\`);`,
-    tags: ['profitability', 'income statement', 'core'],
+function makeEspresso(coffeeGrams, waterMl) {
+  // A simplified espresso function for this recipe
+  return { coffeeGrams, waterMl };
+}
+
+makeCappuccino(1, 150);`,
+    tags: ['حليب', 'رغوة', 'كلاسيكي'],
   },
   {
     id: '3',
-    name: 'Calculate Current Ratio',
-    description: 'Measures a company\'s ability to pay short-term obligations (due within one year). It indicates how a company can use current assets to cover current debts.',
-    code: `function calculateCurrentRatio(currentAssets, currentLiabilities) {
-  if (currentLiabilities === 0) {
-    return Infinity; // or handle as an error for division by zero
-  }
-  return currentAssets / currentLiabilities;
+    name: 'قهوة مقطرة (Pour Over)',
+    description: 'طريقة تحضير يدوية تبرز النكهات الدقيقة للقهوة عن طريق سكب الماء الساخن ببطء على البن المطحون.',
+    code: `function makePourOver(coffeeGrams, waterMl, bloomTimeSeconds) {
+  const ratio = waterMl / coffeeGrams;
+  console.log(\`Starting pour-over with a \${ratio.toFixed(1)}:1 ratio.\`);
+  console.log(\`Blooming for \${bloomTimeSeconds} seconds...\`);
+  // Simulate the rest of the pour
+  console.log('Pour-over complete!');
+  return { coffeeGrams, waterMl, ratio };
 }
 
-const currentAssets = 708000;
-const currentLiabilities = 430000;
-const currentRatio = calculateCurrentRatio(currentAssets, currentLiabilities);
-console.log(\`Current Ratio: \${currentRatio.toFixed(2)}\`);`,
-    tags: ['liquidity', 'balance sheet', 'ratio'],
+makePourOver(20, 320, 30);`,
+    tags: ['يدوي', 'مقطرة', 'نكهات واضحة'],
   },
   {
     id: '4',
-    name: 'Depreciation (Straight-Line)',
-    description: 'Calculates asset depreciation using the straight-line method, which evenly distributes the cost over its useful life.',
-    code: `function calculateStraightLineDepreciation(cost, salvageValue, usefulLife) {
-  if (usefulLife <= 0) {
-    throw new Error("Useful life must be positive.");
-  }
-  const depreciableAmount = cost - salvageValue;
-  return depreciableAmount / usefulLife;
+    name: 'لاتيه مثلج',
+    description: 'مشروب منعش يجمع بين الإسبريسو والحليب البارد والثلج، مثالي للأيام الحارة.',
+    code: `function makeIcedLatte(espressoShots, milkMl, iceCubes) {
+  const espresso = makeEspresso(18 * espressoShots, 36 * espressoShots);
+  console.log(\`Making Iced Latte with \${milkMl}ml of cold milk and \${iceCubes} ice cubes.\`);
+  return { espresso, milkMl, iceCubes };
 }
 
-const assetCost = 10000;
-const salvageValue = 1000;
-const usefulLifeYears = 5;
-const annualDepreciation = calculateStraightLineDepreciation(assetCost, salvageValue, usefulLifeYears);
-console.log(\`Annual Depreciation: \${annualDepreciation}\`);`,
-    tags: ['assets', 'depreciation', 'expense'],
+function makeEspresso(coffeeGrams, waterMl) {
+  return { coffeeGrams, waterMl };
+}
+
+makeIcedLatte(2, 200, 8);`,
+    tags: ['بارد', 'حليب', 'منعش'],
   },
 ];

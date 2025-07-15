@@ -19,8 +19,8 @@ export function SavedSnippets({ snippets, onSelect, onRemove, selectedSnippetId,
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle>My CodeBook</CardTitle>
-                    <CardDescription>Loading saved snippets...</CardDescription>
+                    <CardTitle>كتابي للوصفات</CardTitle>
+                    <CardDescription>جاري تحميل الوصفات المحفوظة...</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="h-32 animate-pulse bg-muted rounded-md" />
@@ -32,26 +32,26 @@ export function SavedSnippets({ snippets, onSelect, onRemove, selectedSnippetId,
     return (
         <Card>
             <CardHeader>
-                <CardTitle>My CodeBook</CardTitle>
-                <CardDescription>Your saved code snippets.</CardDescription>
+                <CardTitle>كتابي للوصفات</CardTitle>
+                <CardDescription>وصفات القهوة المحفوظة.</CardDescription>
             </CardHeader>
             <CardContent>
                 <ScrollArea className="h-48">
                     {snippets.length === 0 ? (
                         <div className="text-center text-muted-foreground py-10">
-                            <p>No snippets saved yet.</p>
-                            <p className="text-xs">Click the bookmark icon to save one.</p>
+                            <p>لم يتم حفظ أي وصفات بعد.</p>
+                            <p className="text-xs">انقر على أيقونة الإشارة المرجعية لحفظ واحدة.</p>
                         </div>
                     ) : (
-                        <div className="space-y-2 pr-2">
+                        <div className="space-y-2 pl-2">
                             {snippets.map(snippet => (
                                 <div key={snippet.id} className="flex items-center gap-2">
                                     <Button
                                         variant={selectedSnippetId === snippet.id ? "secondary" : "ghost"}
-                                        className="w-full justify-start h-auto py-2 text-left"
+                                        className="w-full justify-start h-auto py-2 text-right"
                                         onClick={() => onSelect(snippet)}
                                     >
-                                        <Bookmark className="mr-3 h-4 w-4 flex-shrink-0" />
+                                        <Bookmark className="ml-3 h-4 w-4 flex-shrink-0" />
                                         <span className="flex-grow truncate text-sm">{snippet.name}</span>
                                     </Button>
                                     <Button
@@ -62,7 +62,7 @@ export function SavedSnippets({ snippets, onSelect, onRemove, selectedSnippetId,
                                             e.stopPropagation();
                                             onRemove(snippet.id);
                                         }}
-                                        aria-label="Remove snippet"
+                                        aria-label="إزالة الوصفة"
                                     >
                                         <Trash2 className="h-4 w-4" />
                                     </Button>

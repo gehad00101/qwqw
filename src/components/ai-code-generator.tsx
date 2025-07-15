@@ -22,8 +22,8 @@ export function AICodeGenerator({ onCodeGenerated }: AICodeGeneratorProps) {
         e.preventDefault();
         if (!taskDescription.trim()) {
             toast({
-                title: "Error",
-                description: "Please enter a task description.",
+                title: "خطأ",
+                description: "الرجاء إدخال وصف للمهمة.",
                 variant: "destructive",
             });
             return;
@@ -34,15 +34,15 @@ export function AICodeGenerator({ onCodeGenerated }: AICodeGeneratorProps) {
             onCodeGenerated({
                 id: `ai-${Date.now()}`,
                 name: `AI: ${taskDescription.substring(0, 20)}...`,
-                description: `AI-generated code for: "${taskDescription}"`,
+                description: `كود تم إنشاؤه بواسطة الذكاء الاصطناعي لـ: "${taskDescription}"`,
                 code: result.codeSnippet,
             });
             setTaskDescription("");
         } catch (error) {
             console.error(error);
             toast({
-                title: "Error",
-                description: "Failed to generate code. Please try again.",
+                title: "خطأ",
+                description: "فشل في إنشاء الكود. الرجاء المحاولة مرة أخرى.",
                 variant: "destructive",
             });
         } finally {
@@ -53,21 +53,21 @@ export function AICodeGenerator({ onCodeGenerated }: AICodeGeneratorProps) {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>AI Code Generator</CardTitle>
-                <CardDescription>Describe an accounting task, and our AI will generate the code for you.</CardDescription>
+                <CardTitle>مولّد أكواد القهوة بالذكاء الاصطناعي</CardTitle>
+                <CardDescription>صف وصفة قهوة، وسيقوم الذكاء الاصطناعي بإنشاء الكود لك.</CardDescription>
             </CardHeader>
             <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <Textarea
-                        placeholder="e.g., 'Calculate the debt-to-equity ratio'"
+                        placeholder="مثال: 'وصفة لاتيه مثلج بالفانيليا'"
                         value={taskDescription}
                         onChange={(e) => setTaskDescription(e.target.value)}
                         rows={3}
                         disabled={isLoading}
                     />
                     <Button type="submit" disabled={isLoading} className="w-full">
-                        <Wand2 className="mr-2 h-4 w-4" />
-                        {isLoading ? "Generating..." : "Generate Code"}
+                        <Wand2 className="ml-2 h-4 w-4" />
+                        {isLoading ? "جاري الإنشاء..." : "أنشئ الكود"}
                     </Button>
                 </form>
             </CardContent>
