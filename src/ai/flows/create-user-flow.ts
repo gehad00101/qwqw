@@ -55,12 +55,16 @@ export const createUserFlow = ai.defineFlow(
       });
 
       // Create user profile in Firestore
-      const userProfile = {
+      const userProfile: { uid: string; email: string; role: string; branchId?: string } = {
         uid: userRecord.uid,
         email: input.email,
         role: input.role,
-        ...(input.role === 'manager' && input.branchId && { branchId: input.branchId }),
       };
+
+      if (input.role === 'manager' && input.branchId) {
+        userProfile.branchId = input.branchId;
+      }
+
 
       await adminDb.collection('users').doc(userRecord.uid).set(userProfile);
 
