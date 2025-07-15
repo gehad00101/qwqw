@@ -4,7 +4,7 @@ import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -22,7 +22,6 @@ export function Login() {
     try {
       if (!auth) throw new Error("Firebase Auth not initialized");
       await signInWithEmailAndPassword(auth, email, password);
-      // No need to show toast on success, the main page will just load.
     } catch (error: any) {
       console.error(error);
       let errorMessage = "فشل تسجيل الدخول. يرجى التحقق من بريدك الإلكتروني وكلمة المرور.";
@@ -40,47 +39,43 @@ export function Login() {
   };
 
   return (
-    <div className="flex h-screen w-full items-center justify-center bg-gray-100 dark:bg-gray-900">
-      <Card className="w-full max-w-sm">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 p-4">
+      <Card className="w-full max-w-md p-2 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700">
         <form onSubmit={handleLogin}>
           <CardHeader className="text-center">
-             <div className="flex items-center justify-center mb-4">
-                <Coffee className="h-10 w-10 text-indigo-500" />
-                <h1 className="text-3xl font-bold ml-2">مقهى</h1>
-            </div>
-            <CardTitle className="text-2xl">تسجيل الدخول</CardTitle>
-            <CardDescription>أدخل بريدك الإلكتروني وكلمة المرور للوصول إلى نظام المحاسبة.</CardDescription>
+            <CardTitle className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">تسجيل الدخول</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email">البريد الإلكتروني</Label>
+              <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">البريد الإلكتروني</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="user@example.com"
+                placeholder="أدخل بريدك الإلكتروني"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
+                className="mt-1 block w-full px-4 py-2 border-gray-300 rounded-lg shadow-sm focus:ring-primary focus:border-primary transition duration-200"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">كلمة المرور</Label>
+              <Label htmlFor="password"  className="text-sm font-medium text-gray-700 dark:text-gray-300">كلمة المرور</Label>
               <Input
                 id="password"
                 type="password"
+                placeholder="أدخل كلمة المرور"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
+                className="mt-1 block w-full px-4 py-2 border-gray-300 rounded-lg shadow-sm focus:ring-primary focus:border-primary transition duration-200"
               />
             </div>
-          </CardContent>
-          <CardFooter>
-            <Button className="w-full" type="submit" disabled={isLoading}>
+             <Button className="w-full flex justify-center py-3 px-4 rounded-lg shadow-sm text-lg font-semibold transition duration-200 transform hover:scale-105" type="submit" disabled={isLoading}>
               {isLoading ? "جاري تسجيل الدخول..." : "تسجيل الدخول"}
             </Button>
-          </CardFooter>
+          </CardContent>
         </form>
       </Card>
     </div>
