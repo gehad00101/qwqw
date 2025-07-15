@@ -15,6 +15,11 @@ const firebaseConfig: FirebaseOptions = {
   measurementId: "YOUR_MEASUREMENT_ID"
 };
 
+// ** هام **
+// أنشئ المستخدم الأول (المالك) يدويًا في لوحة تحكم Firebase -> Authentication
+// البريد الإلكتروني للمالك: n9212993@gmail.com
+// سيتم تعيين دور "المالك" له تلقائيًا عند أول تسجيل دخول.
+
 let app;
 let db;
 let auth;
