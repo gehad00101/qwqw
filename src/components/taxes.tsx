@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, query, onSnapshot, serverTimestamp, orderBy } from "firebase/firestore";
+import { collection, addDoc, query, onSnapshot, serverTimestamp, orderBy, deleteDoc, doc } from "firebase/firestore";
 import { Trash2 } from "lucide-react";
 
 
@@ -112,6 +112,25 @@ export function Taxes({ readOnly }: TaxesProps) {
     }
   };
 
+  const handleDeletePayment = async (paymentId: string) => {
+    if (!db) return;
+    try {
+      await deleteDoc(doc(db, "tax_payments", paymentId));
+      toast({
+        title: "نجاح",
+        description: "تم حذف الدفعة بنجاح.",
+      });
+    } catch (error) {
+      console.error("Error deleting payment: ", error);
+      toast({
+        title: "خطأ",
+        description: "فشل في حذف الدفعة.",
+        variant: "destructive",
+      });
+    }
+  };
+
+
   return (
     <div className="grid lg:grid-cols-2 gap-6">
       <Card>
@@ -121,7 +140,7 @@ export function Taxes({ readOnly }: TaxesProps) {
         </CardHeader>
         <CardContent className="space-y-4">
            <div>
-            <label htmlFor="taxType" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">نوع الدفعة</label>
+            <label htmlFor="taxType" className="block text-sm font-medium text-muted-foreground mb-1">نوع الدفعة</label>
             <Select onValueChange={(value) => setType(value as any)} value={type} disabled={isLoading || readOnly}>
                 <SelectTrigger id="taxType"><SelectValue placeholder="اختر نوع الدفعة" /></SelectTrigger>
                 <SelectContent>
@@ -131,19 +150,19 @@ export function Taxes({ readOnly }: TaxesProps) {
             </Select>
           </div>
            <div>
-            <label htmlFor="taxAmount" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">المبلغ المدفوع</label>
+            <label htmlFor="taxAmount" className="block text-sm font-medium text-muted-foreground mb-1">المبلغ المدفوع</label>
             <Input id="taxAmount" type="number" placeholder="1500.00" value={amount} onChange={(e) => setAmount(e.target.value)} disabled={isLoading || readOnly} />
           </div>
            <div>
-            <label htmlFor="taxPeriod" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الفترة (مثال: الربع الأول 2024)</label>
+            <label htmlFor="taxPeriod" className="block text-sm font-medium text-muted-foreground mb-1">الفترة (مثال: الربع الأول 2024)</label>
             <Input id="taxPeriod" type="text" placeholder="الربع الأول 2024" value={period} onChange={(e) => setPeriod(e.target.value)} disabled={isLoading || readOnly} />
           </div>
           <div>
-            <label htmlFor="taxDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">تاريخ الدفع</label>
+            <label htmlFor="taxDate" className="block text-sm font-medium text-muted-foreground mb-1">تاريخ الدفع</label>
             <Input id="taxDate" type="date" value={date} onChange={(e) => setDate(e.target.value)} disabled={isLoading || readOnly} />
           </div>
           <div>
-            <label htmlFor="taxDescription" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">ملاحظات (اختياري)</label>
+            <label htmlFor="taxDescription" className="block text-sm font-medium text-muted-foreground mb-1">ملاحظات (اختياري)</label>
             <Textarea id="taxDescription" placeholder="رقم الفاتورة، تفاصيل إضافية..." value={description} onChange={(e) => setDescription(e.target.value)} disabled={isLoading || readOnly} />
           </div>
           <Button onClick={handleAddPayment} disabled={isLoading || readOnly} className="w-full">
@@ -158,18 +177,21 @@ export function Taxes({ readOnly }: TaxesProps) {
           <CardDescription>قائمة بجميع الدفعات المسجلة.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3 h-96 overflow-y-auto pr-2">
+          <div className="space-y-3 h-[450px] overflow-y-auto pr-2">
             {payments.length === 0 ? (
               <p className="text-center text-muted-foreground pt-10">لا توجد دفعات مسجلة بعد.</p>
             ) : (
               payments.map((p) => (
                 <div key={p.id} className="p-3 rounded-lg flex justify-between items-center bg-muted">
                   <div>
-                    <p className={`font-semibold ${p.type === 'vat' ? 'text-orange-600' : 'text-teal-600'}`}>{p.type === 'vat' ? 'ضريبة القيمة المضافة' : 'زكاة'}: {p.amount.toFixed(2)} ريال</p>
+                    <p className={`font-semibold ${p.type === 'vat' ? 'text-orange-600 dark:text-orange-400' : 'text-teal-600 dark:text-teal-400'}`}>{p.type === 'vat' ? 'ضريبة القيمة المضافة' : 'زكاة'}: {p.amount.toFixed(2)} ريال</p>
                     <p className="text-sm text-muted-foreground">الفترة: {p.period}</p>
                     <p className="text-sm text-muted-foreground">التاريخ: {p.date}</p>
                     {p.description && <p className="text-xs text-muted-foreground italic">"{p.description}"</p>}
                   </div>
+                  <Button variant="ghost" size="icon" onClick={() => handleDeletePayment(p.id)} disabled={readOnly} aria-label="حذف الدفعة">
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
                 </div>
               ))
             )}

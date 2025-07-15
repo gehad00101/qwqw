@@ -141,19 +141,19 @@ export function ProjectCost({ readOnly }: ProjectCostProps) {
             <p className="text-3xl font-bold text-purple-900 dark:text-purple-200">{totalCost.toFixed(2)} ريال</p>
           </div>
           <div>
-            <label htmlFor="costName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">اسم البند</label>
+            <label htmlFor="costName" className="block text-sm font-medium text-muted-foreground mb-1">اسم البند</label>
             <Input id="costName" type="text" placeholder="شراء ماكينة قهوة" value={name} onChange={(e) => setName(e.target.value)} disabled={isLoading || readOnly} />
           </div>
           <div>
-            <label htmlFor="costAmount" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">التكلفة</label>
+            <label htmlFor="costAmount" className="block text-sm font-medium text-muted-foreground mb-1">التكلفة</label>
             <Input id="costAmount" type="number" placeholder="25000" value={amount} onChange={(e) => setAmount(e.target.value)} disabled={isLoading || readOnly} />
           </div>
           <div>
-            <label htmlFor="costDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">التاريخ</label>
+            <label htmlFor="costDate" className="block text-sm font-medium text-muted-foreground mb-1">التاريخ</label>
             <Input id="costDate" type="date" value={date} onChange={(e) => setDate(e.target.value)} disabled={isLoading || readOnly} />
           </div>
           <div>
-            <label htmlFor="costDescription" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الوصف (اختياري)</label>
+            <label htmlFor="costDescription" className="block text-sm font-medium text-muted-foreground mb-1">الوصف (اختياري)</label>
             <Textarea id="costDescription" placeholder="فاتورة رقم 123 من مورد..." value={description} onChange={(e) => setDescription(e.target.value)} disabled={isLoading || readOnly} />
           </div>
           <Button onClick={handleAddCost} disabled={isLoading || readOnly} className="w-full">
@@ -168,7 +168,7 @@ export function ProjectCost({ readOnly }: ProjectCostProps) {
           <CardDescription>جميع بنود التكاليف التأسيسية المسجلة.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3 h-96 overflow-y-auto pr-2">
+          <div className="space-y-3 h-[450px] overflow-y-auto pr-2">
             {costs.length === 0 ? (
               <p className="text-center text-muted-foreground pt-10">لا توجد تكاليف مسجلة بعد.</p>
             ) : (
@@ -178,6 +178,7 @@ export function ProjectCost({ readOnly }: ProjectCostProps) {
                     <p className="font-semibold text-primary">{cost.name}</p>
                     <p className="text-sm text-muted-foreground">التكلفة: {cost.amount.toFixed(2)} ريال</p>
                     <p className="text-xs text-muted-foreground">التاريخ: {cost.date}</p>
+                    {cost.description && <p className="text-xs text-muted-foreground italic">"{cost.description}"</p>}
                   </div>
                   <Button variant="ghost" size="icon" onClick={() => handleDeleteCost(cost.id)} disabled={readOnly} aria-label="حذف التكلفة">
                     <Trash2 className="h-4 w-4 text-destructive" />

@@ -135,17 +135,17 @@ export function Partners({ readOnly }: PartnersProps) {
         </CardHeader>
         <CardContent className="space-y-4">
            <div className="p-4 bg-gray-100 dark:bg-gray-900/20 rounded-lg text-center">
-            <h3 className="text-lg font-medium text-gray-800 dark:text-gray-300">إجمالي الحصص المسجلة</h3>
-            <p className={`text-3xl font-bold ${totalShare > 100 ? 'text-red-500' : 'text-gray-900 dark:text-gray-200'}`}>
+            <h3 className="text-lg font-medium text-muted-foreground">إجمالي الحصص المسجلة</h3>
+            <p className={`text-3xl font-bold ${totalShare > 100 ? 'text-red-500' : 'text-foreground'}`}>
                 {totalShare.toFixed(2)}%
             </p>
           </div>
           <div>
-            <label htmlFor="partnerName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">اسم الشريك</label>
+            <label htmlFor="partnerName" className="block text-sm font-medium text-muted-foreground mb-1">اسم الشريك</label>
             <Input id="partnerName" type="text" placeholder="مثال: خالد عبدالله" value={name} onChange={(e) => setName(e.target.value)} disabled={isLoading || readOnly} />
           </div>
           <div>
-            <label htmlFor="partnerShare" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">نسبة الحصة (%)</label>
+            <label htmlFor="partnerShare" className="block text-sm font-medium text-muted-foreground mb-1">نسبة الحصة (%)</label>
             <Input id="partnerShare" type="number" placeholder="50" value={share} onChange={(e) => setShare(e.target.value)} disabled={isLoading || readOnly} />
           </div>
           <Button onClick={handleAddPartner} disabled={isLoading || readOnly} className="w-full">
@@ -160,7 +160,7 @@ export function Partners({ readOnly }: PartnersProps) {
           <CardDescription>جميع الشركاء المسجلين وحصصهم.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3 h-96 overflow-y-auto pr-2">
+          <div className="space-y-3 h-[450px] overflow-y-auto pr-2">
             {partners.length === 0 ? (
               <p className="text-center text-muted-foreground pt-10">لا يوجد شركاء مسجلين بعد.</p>
             ) : (

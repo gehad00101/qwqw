@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, query, onSnapshot, serverTimestamp, orderBy, doc, getDoc, setDoc } from "firebase/firestore";
+import { collection, addDoc, query, onSnapshot, serverTimestamp, orderBy, doc, deleteDoc } from "firebase/firestore";
+import { Trash2 } from "lucide-react";
 
 interface CapitalTransaction {
   id: string;
@@ -38,7 +39,6 @@ export function Capital({ readOnly }: CapitalProps) {
   useEffect(() => {
     if (!db) return;
 
-    // Listener for Capital Transactions
     const capitalCollectionRef = collection(db, 'capital_transactions');
     const q = query(capitalCollectionRef, orderBy("timestamp", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -52,8 +52,17 @@ export function Capital({ readOnly }: CapitalProps) {
         }
         return { id: doc.id, ...data };
       }) as CapitalTransaction[];
+
+      // Recalculate total from the source of truth
+      const total = transData.reduce((acc, tx) => {
+        if (tx.type === 'withdrawal') {
+            return acc - tx.amount;
+        }
+        return acc + tx.amount;
+      }, 0)
+      
       setTransactions(transData);
-      setTotalCapital(currentTotal);
+      setTotalCapital(total);
     }, (error) => {
       console.error("Error fetching capital transactions: ", error);
       toast({
@@ -123,6 +132,25 @@ export function Capital({ readOnly }: CapitalProps) {
     }
   };
 
+  const handleDeleteTransaction = async (txId: string) => {
+    if (!db) return;
+    try {
+      await deleteDoc(doc(db, "capital_transactions", txId));
+      toast({
+        title: "نجاح",
+        description: "تم حذف المعاملة بنجاح.",
+      });
+    } catch (error) {
+      console.error("Error deleting transaction: ", error);
+      toast({
+        title: "خطأ",
+        description: "فشل في حذف المعاملة.",
+        variant: "destructive",
+      });
+    }
+  };
+
+
   return (
     <div className="grid lg:grid-cols-2 gap-6">
       <Card>
@@ -136,11 +164,11 @@ export function Capital({ readOnly }: CapitalProps) {
             <p className="text-3xl font-bold text-blue-900 dark:text-blue-200">{totalCapital.toFixed(2)} ريال</p>
           </div>
            <div>
-            <label htmlFor="capitalAmount" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">المبلغ</label>
+            <label htmlFor="capitalAmount" className="block text-sm font-medium text-muted-foreground mb-1">المبلغ</label>
             <Input id="capitalAmount" type="number" placeholder="50000.00" value={amount} onChange={(e) => setAmount(e.target.value)} disabled={isLoading || readOnly} />
           </div>
            <div>
-             <label htmlFor="capitalType" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">نوع المعاملة</label>
+             <label htmlFor="capitalType" className="block text-sm font-medium text-muted-foreground mb-1">نوع المعاملة</label>
              <Select onValueChange={(value) => setType(value as any)} value={type} disabled={isLoading || readOnly}>
                 <SelectTrigger id="capitalType"><SelectValue placeholder="اختر نوع المعاملة" /></SelectTrigger>
                 <SelectContent>
@@ -151,11 +179,11 @@ export function Capital({ readOnly }: CapitalProps) {
             </Select>
           </div>
           <div>
-            <label htmlFor="capitalDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">التاريخ</label>
+            <label htmlFor="capitalDate" className="block text-sm font-medium text-muted-foreground mb-1">التاريخ</label>
             <Input id="capitalDate" type="date" value={date} onChange={(e) => setDate(e.target.value)} disabled={isLoading || readOnly} />
           </div>
           <div>
-            <label htmlFor="capitalDescription" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الوصف (اختياري)</label>
+            <label htmlFor="capitalDescription" className="block text-sm font-medium text-muted-foreground mb-1">الوصف (اختياري)</label>
             <Textarea id="capitalDescription" placeholder="وصف مختصر للمعاملة" value={description} onChange={(e) => setDescription(e.target.value)} disabled={isLoading || readOnly} />
           </div>
           <div className="flex gap-4">
@@ -172,7 +200,7 @@ export function Capital({ readOnly }: CapitalProps) {
           <CardDescription>قائمة بجميع المعاملات المتعلقة برأس المال.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3 h-96 overflow-y-auto pr-2">
+          <div className="space-y-3 h-[450px] overflow-y-auto pr-2">
             {transactions.length === 0 ? (
               <p className="text-center text-muted-foreground pt-10">لا توجد معاملات مسجلة بعد.</p>
             ) : (
@@ -183,6 +211,9 @@ export function Capital({ readOnly }: CapitalProps) {
                     <p className="text-sm text-muted-foreground">{tx.date}</p>
                     {tx.description && <p className="text-xs text-muted-foreground italic">"{tx.description}"</p>}
                   </div>
+                   <Button variant="ghost" size="icon" onClick={() => handleDeleteTransaction(tx.id)} disabled={readOnly} aria-label="حذف المعاملة">
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
                 </div>
               ))
             )}
