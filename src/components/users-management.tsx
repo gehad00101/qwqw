@@ -183,7 +183,9 @@ export function UsersManagement({ branches }: UsersManagementProps) {
         </CardHeader>
         <CardContent>
           <div className="space-y-3 h-96 overflow-y-auto pr-2">
-            {users.map((user) => (
+            {users.length === 0 ? (
+                <p className="text-center text-muted-foreground pt-10">لم يتم إنشاء أي مستخدمين بعد.</p>
+            ) : (users.map((user) => (
               <div key={user.uid} className="p-3 rounded-lg flex justify-between items-center bg-muted">
                 <div>
                   <p className="font-semibold text-primary">{user.email}</p>
@@ -195,7 +197,7 @@ export function UsersManagement({ branches }: UsersManagementProps) {
                    )}
                 </div>
               </div>
-            ))}
+            )))}
           </div>
         </CardContent>
       </Card>

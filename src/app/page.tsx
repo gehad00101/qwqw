@@ -79,16 +79,21 @@ export default function CafeAccountingSystem() {
 
     const unsubscribe = onSnapshot(q, async (snapshot) => {
       if (snapshot.empty) {
-        // If no branches exist, create a default one.
-        try {
-          const defaultBranchRef = doc(db, 'branches', 'main_branch');
-          await setDoc(defaultBranchRef, {
-            id: 'main_branch',
-            name: 'الفرع الرئيسي',
-            createdAt: serverTimestamp()
-          });
-        } catch (error) {
-           console.error("Error creating default branch: ", error);
+        // If no branches exist and the user is the owner, create a default one.
+        if (userProfile.role === 'owner') {
+          try {
+            const defaultBranchRef = doc(db, 'branches', 'main_branch');
+            const defaultBranchSnap = await getDoc(defaultBranchRef);
+            if (!defaultBranchSnap.exists()) {
+              await setDoc(defaultBranchRef, {
+                id: 'main_branch',
+                name: 'الفرع الرئيسي',
+                createdAt: serverTimestamp()
+              });
+            }
+          } catch (error) {
+             console.error("Error creating default branch: ", error);
+          }
         }
       } else {
         const branchesData = snapshot.docs.map(doc => doc.data() as Branch);
@@ -124,16 +129,26 @@ export default function CafeAccountingSystem() {
   }, [selectedBranchId, userProfile]);
 
   const renderPage = () => {
-    if (!selectedBranchId && !['branches', 'users'].includes(activePage)) {
+    if (!selectedBranchId && userProfile?.role !== 'owner' && !['branches', 'users'].includes(activePage)) {
        return (
         <div className="text-center p-10">
-          <h2 className="text-2xl font-bold">الرجاء تحديد فرع</h2>
-          <p className="text-muted-foreground">يجب تحديد فرع لعرض بياناته. يمكنك إدارة الفروع من صفحة الفروع.</p>
+          <h2 className="text-2xl font-bold">لم يتم تعيين فرع</h2>
+          <p className="text-muted-foreground">الرجاء التواصل مع مالك النظام لتعيينك إلى فرع.</p>
+        </div>
+      );
+    }
+
+    if (!selectedBranchId && userProfile?.role === 'owner' && !['branches', 'users'].includes(activePage)) {
+       return (
+        <div className="text-center p-10">
+          <h2 className="text-2xl font-bold">مرحباً بك!</h2>
+          <p className="text-muted-foreground">يبدو أنه لا يوجد فروع بعد. اذهب إلى صفحة 'الفروع' لإنشاء فرعك الأول.</p>
         </div>
       );
     }
     
     const readOnly = userProfile?.role === 'accountant';
+    const isManager = userProfile?.role === 'manager';
 
     switch (activePage) {
       case 'dashboard':
@@ -145,15 +160,15 @@ export default function CafeAccountingSystem() {
       case 'inventory':
         return <Inventory branchId={selectedBranchId!} readOnly={readOnly} />;
       case 'reports':
-        return <Reports branchId={selectedBranchId!} />;
+        return isManager ? null : <Reports branchId={selectedBranchId!} />;
       case 'employees':
         return <Employees branchId={selectedBranchId!} readOnly={readOnly} />;
       case 'bank':
         return <Bank branchId={selectedBranchId!} readOnly={readOnly} />;
       case 'branches':
-        return <Branches readOnly={readOnly}/>;
+        return isManager ? null : <Branches readOnly={readOnly || isManager} />;
       case 'users':
-        return <UsersManagement branches={branches} />;
+        return isManager || readOnly ? null : <UsersManagement branches={branches} />;
       default:
         return <Dashboard branchId={selectedBranchId!} />;
     }
