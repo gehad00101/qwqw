@@ -53,15 +53,20 @@ export default function CafeAccountingSystem() {
               setActivePage('dashboard');
           }
         } else {
-          // Handle case where user exists in Auth but not in Firestore
-          // This could be the owner's first sign-in. Let's create their profile.
-          const ownerProfile: UserProfile = {
-            uid: currentUser.uid,
-            email: currentUser.email!,
-            role: 'owner'
-          };
-          await setDoc(userDocRef, ownerProfile);
-          setUserProfile(ownerProfile);
+          // This is a first sign-in. Check if it's the designated owner.
+          if (currentUser.email === 'n9212993@gmail.com') {
+              const ownerProfile: UserProfile = {
+                uid: currentUser.uid,
+                email: currentUser.email!,
+                role: 'owner'
+              };
+              await setDoc(userDocRef, ownerProfile);
+              setUserProfile(ownerProfile);
+          } else {
+              // Not the owner, and no profile exists. Treat as unauthorized.
+              console.warn(`Unauthorized login attempt by: ${currentUser.email}`);
+              setUserProfile(null);
+          }
         }
       } else {
         setUserProfile(null);
