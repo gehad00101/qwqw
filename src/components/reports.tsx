@@ -10,9 +10,9 @@ import { Calendar } from "@/components/ui/calendar";
 import { db } from "@/lib/firebase";
 import { collection, query, onSnapshot, orderBy, where, doc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar as CalendarIcon, PieChart, LineChart } from 'lucide-react';
+import { Calendar as CalendarIcon, PieChart, LineChart as LineChartIcon } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Pie, Cell, ResponsiveContainer, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, Bar } from 'recharts';
+import { Pie, Cell, ResponsiveContainer, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, Bar, LineChart, PieChart as RechartsPieChart } from 'recharts';
 import { format, subDays } from "date-fns";
 import { ar } from "date-fns/locale";
 import type { DateRange } from "react-day-picker";
@@ -88,11 +88,12 @@ export function Reports({ branchId }: ReportsProps) {
   }, [toast, branchId]);
   
   const filteredTransactions = useMemo(() => {
-    if (!dateRange?.from || !dateRange?.to) {
+    if (!dateRange?.from) {
         return allTransactions;
     }
     const fromDate = dateRange.from.toISOString().split('T')[0];
-    const toDate = dateRange.to.toISOString().split('T')[0];
+    // If to date is not selected, use from date as to date
+    const toDate = (dateRange.to || dateRange.from).toISOString().split('T')[0];
     return allTransactions.filter(tx => tx.date >= fromDate && tx.date <= toDate);
   }, [allTransactions, dateRange]);
   
@@ -234,15 +235,17 @@ export function Reports({ branchId }: ReportsProps) {
             </CardHeader>
             <CardContent>
                 <ChartContainer config={{}} className="h-[250px] w-full">
-                    <LineChart data={monthlyData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <RechartsTooltip content={<ChartTooltipContent />} />
-                        <Legend />
-                        <Line type="monotone" dataKey="المبيعات" stroke="#22c55e" activeDot={{ r: 8 }} />
-                        <Line type="monotone" dataKey="المصروفات" stroke="#ef4444" />
-                    </LineChart>
+                    <ResponsiveContainer>
+                        <LineChart data={monthlyData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" />
+                            <YAxis />
+                            <RechartsTooltip content={<ChartTooltipContent />} />
+                            <Legend />
+                            <Line type="monotone" dataKey="المبيعات" stroke="#22c55e" activeDot={{ r: 8 }} />
+                            <Line type="monotone" dataKey="المصروفات" stroke="#ef4444" />
+                        </LineChart>
+                    </ResponsiveContainer>
                 </ChartContainer>
             </CardContent>
         </Card>
@@ -253,15 +256,17 @@ export function Reports({ branchId }: ReportsProps) {
             </CardHeader>
             <CardContent className="flex justify-center">
                  <ChartContainer config={{}} className="h-[250px] w-full">
-                     <PieChart>
-                        <RechartsTooltip content={<ChartTooltipContent nameKey="name" />} />
-                        <Legend />
-                        <Pie data={expenseCategoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} fill="#8884d8" label>
-                            {expenseCategoryData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                        </Pie>
-                    </PieChart>
+                     <ResponsiveContainer>
+                        <RechartsPieChart>
+                            <RechartsTooltip content={<ChartTooltipContent nameKey="name" />} />
+                            <Legend />
+                            <Pie data={expenseCategoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} fill="#8884d8" label>
+                                {expenseCategoryData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                ))}
+                            </Pie>
+                        </RechartsPieChart>
+                     </ResponsiveContainer>
                  </ChartContainer>
             </CardContent>
         </Card>
@@ -310,5 +315,3 @@ export function Reports({ branchId }: ReportsProps) {
     </div>
   );
 }
-
-    
