@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -12,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { createUser } from "@/ai/flows/create-user";
 import { type Branch } from "@/components/branches";
 import type { UserRole } from "@/app/page";
+import { Coffee } from "lucide-react";
 
 interface LoginProps {
     branches: Branch[];
@@ -109,7 +111,7 @@ export function Login({ branches }: LoginProps) {
 
   const formAction = isRegistering ? handleRegister : handleLogin;
   const title = isRegistering ? "إنشاء حساب جديد" : "تسجيل الدخول";
-  const buttonText = isRegistering ? "إنشاء حساب" : "تسجيل الدخول";
+  const buttonText = isRegistering ? "إنشاء الحساب" : "تسجيل الدخول";
   const toggleText = isRegistering ? "لديك حساب بالفعل؟ سجل الدخول" : "ليس لديك حساب؟ أنشئ واحدًا";
 
 
@@ -117,6 +119,9 @@ export function Login({ branches }: LoginProps) {
     <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 p-4">
       <Card className="w-full max-w-md p-8 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-800">
         <CardHeader className="p-0 mb-8 text-center">
+            <div className="mx-auto bg-primary/10 text-primary p-3 rounded-full mb-4 w-fit">
+               <Coffee className="h-8 w-8" />
+            </div>
             <CardTitle className="text-3xl font-bold text-gray-800 dark:text-gray-100">{title}</CardTitle>
              <CardDescription className="pt-2">
                 {isRegistering ? "أدخل بياناتك لإنشاء حساب جديد في النظام." : "أدخل بياناتك للوصول إلى نظام المحاسبة."}
@@ -197,3 +202,5 @@ export function Login({ branches }: LoginProps) {
     </div>
   );
 }
+
+    
