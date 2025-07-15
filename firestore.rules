@@ -1,0 +1,11 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // تحذير: هذه القاعدة تسمح لأي شخص بقراءة وكتابة أي بيانات في قاعدة بيانات Firestore الخاصة بك.
+    // هي مخصصة فقط لأغراض الاختبار والتطوير.
+    // لا تستخدم هذا في تطبيق إنتاجي يحتوي على بيانات حساسة.
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
