@@ -19,8 +19,8 @@ export function SavedSnippets({ snippets, onSelect, onRemove, selectedSnippetId,
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle>كتابي للوصفات</CardTitle>
-                    <CardDescription>جاري تحميل الوصفات المحفوظة...</CardDescription>
+                    <CardTitle>الأكواد المحفوظة</CardTitle>
+                    <CardDescription>جاري تحميل الأكواد المحفوظة...</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="h-32 animate-pulse bg-muted rounded-md" />
@@ -32,15 +32,15 @@ export function SavedSnippets({ snippets, onSelect, onRemove, selectedSnippetId,
     return (
         <Card>
             <CardHeader>
-                <CardTitle>كتابي للوصفات</CardTitle>
-                <CardDescription>وصفات القهوة المحفوظة.</CardDescription>
+                <CardTitle>الأكواد المحفوظة</CardTitle>
+                <CardDescription>الأكواد المحاسبية التي قمت بحفظها.</CardDescription>
             </CardHeader>
             <CardContent>
                 <ScrollArea className="h-48">
                     {snippets.length === 0 ? (
                         <div className="text-center text-muted-foreground py-10">
-                            <p>لم يتم حفظ أي وصفات بعد.</p>
-                            <p className="text-xs">انقر على أيقونة الإشارة المرجعية لحفظ واحدة.</p>
+                            <p>لم يتم حفظ أي أكواد بعد.</p>
+                            <p className="text-xs">انقر على أيقونة الإشارة المرجعية لحفظ كود.</p>
                         </div>
                     ) : (
                         <div className="space-y-2 pl-2">
@@ -62,7 +62,7 @@ export function SavedSnippets({ snippets, onSelect, onRemove, selectedSnippetId,
                                             e.stopPropagation();
                                             onRemove(snippet.id);
                                         }}
-                                        aria-label="إزالة الوصفة"
+                                        aria-label="إزالة الكود"
                                     >
                                         <Trash2 className="h-4 w-4" />
                                     </Button>

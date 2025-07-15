@@ -9,68 +9,65 @@ export interface AccountingFunction {
 export const ACCOUNTING_FUNCTIONS: AccountingFunction[] = [
   {
     id: '1',
-    name: 'إسبريسو كلاسيكي',
-    description: 'جرعة مركزة من القهوة تُحضّر عن طريق دفع الماء الساخن المضغوط عبر حبوب البن المطحونة جيدًا.',
-    code: `function makeEspresso(coffeeGrams, waterMl) {
-  const strength = coffeeGrams / waterMl;
-  console.log(\`Espresso ready! Strength: \${strength.toFixed(2)}\`);
-  return { coffeeGrams, waterMl, type: 'Espresso' };
+    name: 'حساب الإهلاك بالقسط الثابت',
+    description: 'حساب مصروف الإهلاك السنوي للأصل على مدى عمره الإنتاجي.',
+    code: `function calculateStraightLineDepreciation(cost, salvageValue, usefulLife) {
+  return (cost - salvageValue) / usefulLife;
 }
 
-makeEspresso(18, 36);`,
-    tags: ['ساخن', 'مركز', 'أساسي'],
+// مثال: أصل تكلفته 10,000، قيمته التخريدية 1,000، وعمره 5 سنوات
+const annualDepreciation = calculateStraightLineDepreciation(10000, 1000, 5);
+console.log(\`الإهلاك السنوي: \${annualDepreciation}\`);`,
+    tags: ['أصول ثابتة', 'إهلاك', 'قوائم مالية'],
   },
   {
     id: '2',
-    name: 'كابتشينو',
-    description: 'مزيج متناغم من الإسبريسو والحليب المبخر ورغوة الحليب الغنية.',
-    code: `function makeCappuccino(espressoShots, milkMl) {
-  const espresso = makeEspresso(18 * espressoShots, 36 * espressoShots);
-  const steamedMilk = milkMl * 0.6;
-  const foam = milkMl * 0.4;
-  console.log(\`Cappuccino prepared with \${steamedMilk}ml steamed milk and \${foam}ml foam.\`);
-  return { espresso, steamedMilk, foam };
+    name: 'تسجيل قيد يومية بسيط',
+    description: 'إنشاء دالة لتسجيل معاملة مالية بسيطة من طرفين (مدين ودائن).',
+    code: `function createJournalEntry(date, debitAccount, creditAccount, amount, description) {
+  const entry = {
+    date: date,
+    debit: { account: debitAccount, amount: amount },
+    credit: { account: creditAccount, amount: amount },
+    description: description
+  };
+  console.log('تم إنشاء قيد اليومية:');
+  console.log(entry);
+  return entry;
 }
 
-function makeEspresso(coffeeGrams, waterMl) {
-  // A simplified espresso function for this recipe
-  return { coffeeGrams, waterMl };
-}
-
-makeCappuccino(1, 150);`,
-    tags: ['حليب', 'رغوة', 'كلاسيكي'],
+createJournalEntry('2023-10-27', 'مصروفات الإيجار', 'النقدية', 5000, 'سداد إيجار شهر أكتوبر');`,
+    tags: ['قيود يومية', 'محاسبة عامة', 'تسجيل'],
   },
   {
     id: '3',
-    name: 'قهوة مقطرة (Pour Over)',
-    description: 'طريقة تحضير يدوية تبرز النكهات الدقيقة للقهوة عن طريق سكب الماء الساخن ببطء على البن المطحون.',
-    code: `function makePourOver(coffeeGrams, waterMl, bloomTimeSeconds) {
-  const ratio = waterMl / coffeeGrams;
-  console.log(\`Starting pour-over with a \${ratio.toFixed(1)}:1 ratio.\`);
-  console.log(\`Blooming for \${bloomTimeSeconds} seconds...\`);
-  // Simulate the rest of the pour
-  console.log('Pour-over complete!');
-  return { coffeeGrams, waterMl, ratio };
+    name: 'حساب نسبة السيولة الحالية',
+    description: 'قياس قدرة الشركة على سداد التزاماتها قصيرة الأجل باستخدام أصولها قصيرة الأجل.',
+    code: `function calculateCurrentRatio(currentAssets, currentLiabilities) {
+  if (currentLiabilities === 0) {
+    return Infinity; // تجنب القسمة على صفر
+  }
+  return currentAssets / currentLiabilities;
 }
 
-makePourOver(20, 320, 30);`,
-    tags: ['يدوي', 'مقطرة', 'نكهات واضحة'],
+const ratio = calculateCurrentRatio(50000, 25000);
+console.log(\`نسبة السيولة الحالية: \${ratio.toFixed(2)}\`);`,
+    tags: ['تحليل مالي', 'نسب مالية', 'سيولة'],
   },
   {
     id: '4',
-    name: 'لاتيه مثلج',
-    description: 'مشروب منعش يجمع بين الإسبريسو والحليب البارد والثلج، مثالي للأيام الحارة.',
-    code: `function makeIcedLatte(espressoShots, milkMl, iceCubes) {
-  const espresso = makeEspresso(18 * espressoShots, 36 * espressoShots);
-  console.log(\`Making Iced Latte with \${milkMl}ml of cold milk and \${iceCubes} ice cubes.\`);
-  return { espresso, milkMl, iceCubes };
+    name: 'حساب نقطة التعادل',
+    description: 'تحديد حجم المبيعات الذي تتساوى عنده الإيرادات الكلية مع التكاليف الكلية.',
+    code: `function calculateBreakevenPoint(fixedCosts, salesPricePerUnit, variableCostPerUnit) {
+  const contributionMargin = salesPricePerUnit - variableCostPerUnit;
+  if (contributionMargin <= 0) {
+    return 'لا يمكن الوصول لنقطة التعادل';
+  }
+  return fixedCosts / contributionMargin;
 }
 
-function makeEspresso(coffeeGrams, waterMl) {
-  return { coffeeGrams, waterMl };
-}
-
-makeIcedLatte(2, 200, 8);`,
-    tags: ['بارد', 'حليب', 'منعش'],
+const units = calculateBreakevenPoint(100000, 50, 30);
+console.log(\`نقطة التعادل (بالوحدات): \${Math.ceil(units)}\`);`,
+    tags: ['محاسبة تكاليف', 'تحليل', 'تخطيط'],
   },
 ];

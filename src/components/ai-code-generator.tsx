@@ -53,13 +53,13 @@ export function AICodeGenerator({ onCodeGenerated }: AICodeGeneratorProps) {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>مولّد أكواد القهوة بالذكاء الاصطناعي</CardTitle>
-                <CardDescription>صف وصفة قهوة، وسيقوم الذكاء الاصطناعي بإنشاء الكود لك.</CardDescription>
+                <CardTitle>مولّد الأكواد بالذكاء الاصطناعي</CardTitle>
+                <CardDescription>صف مهمة محاسبية، وسيقوم الذكاء الاصطناعي بإنشاء الكود لك.</CardDescription>
             </CardHeader>
             <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <Textarea
-                        placeholder="مثال: 'وصفة لاتيه مثلج بالفانيليا'"
+                        placeholder="مثال: 'دالة لحساب الإهلاك السنوي للأصول الثابتة'"
                         value={taskDescription}
                         onChange={(e) => setTaskDescription(e.target.value)}
                         rows={3}

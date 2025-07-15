@@ -67,9 +67,9 @@ export default function Home() {
             ) : (
                 <Card className="h-full flex items-center justify-center">
                     <CardContent className="text-center text-muted-foreground pt-6">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto h-12 w-12 mb-4 text-primary"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><path d="M6 2v2"/><path d="M10 2v2"/><path d="M14 2v2"/></svg>
-                        <h2 className="text-xl font-semibold">أهلاً بك في كتاب أكواد القهوة</h2>
-                        <p>اختر وصفة أو قم بإنشاء كود جديد للبدء.</p>
+                        <BookCopy className="mx-auto h-12 w-12 mb-4 text-primary" />
+                        <h2 className="text-xl font-semibold">أهلاً بك في كتاب الأكواد المحاسبية</h2>
+                        <p>اختر دالة أو قم بإنشاء كود جديد للبدء.</p>
                     </CardContent>
                 </Card>
             )}
