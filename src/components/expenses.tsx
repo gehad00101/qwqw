@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, query, onSnapshot, serverTimestamp, orderBy } from "firebase/firestore";
+import { collection, addDoc, query, onSnapshot, serverTimestamp, orderBy, where } from "firebase/firestore";
 
 interface Expense {
   id: string;
@@ -19,7 +19,11 @@ interface Expense {
   timestamp: any;
 }
 
-export function Expenses() {
+interface ExpensesProps {
+  branchId: string;
+}
+
+export function Expenses({ branchId }: ExpensesProps) {
   const { toast } = useToast();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -29,10 +33,13 @@ export function Expenses() {
   const [description, setDescription] = useState("");
 
   useEffect(() => {
-    if (!db) return;
+    if (!db || !branchId) {
+      setExpenses([]);
+      return;
+    }
 
     const expensesCollectionRef = collection(db, 'expenses');
-    const q = query(expensesCollectionRef, orderBy("timestamp", "desc"));
+    const q = query(expensesCollectionRef, where("branchId", "==", branchId), orderBy("timestamp", "desc"));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const expensesData = snapshot.docs.map(doc => ({
@@ -50,7 +57,7 @@ export function Expenses() {
     });
 
     return () => unsubscribe();
-  }, [toast]);
+  }, [toast, branchId]);
 
   const handleAddExpense = async () => {
     const expenseAmount = parseFloat(amount);
@@ -72,6 +79,7 @@ export function Expenses() {
         date: date,
         category: category,
         description: description,
+        branchId: branchId,
         timestamp: serverTimestamp(),
       });
 
@@ -104,7 +112,7 @@ export function Expenses() {
       <Card>
         <CardHeader>
           <CardTitle>إدخال مصروف جديد</CardTitle>
-          <CardDescription>أضف معاملة مصروفات جديدة إلى سجلك.</CardDescription>
+          <CardDescription>أضف معاملة مصروفات جديدة إلى سجلك للفرع المحدد.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
@@ -155,7 +163,7 @@ export function Expenses() {
               disabled={isLoading}
             />
           </div>
-          <Button onClick={handleAddExpense} disabled={isLoading} className="w-full">
+          <Button onClick={handleAddExpense} disabled={isLoading || !branchId} className="w-full">
             {isLoading ? "جاري الإضافة..." : "إضافة مصروف"}
           </Button>
         </CardContent>
@@ -164,12 +172,12 @@ export function Expenses() {
       <Card>
         <CardHeader>
           <CardTitle>سجل المصروفات</CardTitle>
-          <CardDescription>قائمة بآخر المصروفات المسجلة.</CardDescription>
+          <CardDescription>قائمة بآخر المصروفات المسجلة للفرع المحدد.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3 h-96 overflow-y-auto pr-2">
             {expenses.length === 0 ? (
-              <p className="text-center text-muted-foreground pt-10">لا توجد مصروفات مسجلة بعد.</p>
+              <p className="text-center text-muted-foreground pt-10">لا توجد مصروفات مسجلة بعد لهذا الفرع.</p>
             ) : (
               expenses.map((expense) => (
                 <div key={expense.id} className="p-3 rounded-lg flex justify-between items-center bg-muted">

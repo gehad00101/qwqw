@@ -11,9 +11,10 @@ import {
   Coffee,
   Users,
   Landmark,
+  GitBranch,
 } from "lucide-react";
 
-type Page = 'dashboard' | 'sales' | 'expenses' | 'inventory' | 'reports' | 'employees' | 'bank';
+type Page = 'dashboard' | 'sales' | 'expenses' | 'inventory' | 'reports' | 'employees' | 'bank' | 'branches';
 
 interface SidebarProps {
   activePage: Page;
@@ -28,6 +29,7 @@ const navItems = [
   { id: 'employees', label: 'الموظفين', icon: Users },
   { id: 'bank', label: 'البنك', icon: Landmark },
   { id: 'reports', label: 'التقارير', icon: BarChart },
+  { id: 'branches', label: 'الفروع', icon: GitBranch },
 ];
 
 export function Sidebar({ activePage, setActivePage }: SidebarProps) {

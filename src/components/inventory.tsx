@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, query, onSnapshot, serverTimestamp, orderBy } from "firebase/firestore";
+import { collection, addDoc, query, onSnapshot, serverTimestamp, orderBy, where } from "firebase/firestore";
 
 interface InventoryItem {
   id: string;
@@ -17,7 +17,11 @@ interface InventoryItem {
   timestamp: any;
 }
 
-export function Inventory() {
+interface InventoryProps {
+  branchId: string;
+}
+
+export function Inventory({ branchId }: InventoryProps) {
   const { toast } = useToast();
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -27,10 +31,13 @@ export function Inventory() {
   const [unitPrice, setUnitPrice] = useState("");
 
   useEffect(() => {
-    if (!db) return;
+    if (!db || !branchId) {
+      setInventory([]);
+      return;
+    }
 
     const inventoryCollectionRef = collection(db, 'inventory');
-    const q = query(inventoryCollectionRef, orderBy("timestamp", "desc"));
+    const q = query(inventoryCollectionRef, where("branchId", "==", branchId), orderBy("timestamp", "desc"));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const inventoryData = snapshot.docs.map(doc => ({
@@ -48,7 +55,7 @@ export function Inventory() {
     });
 
     return () => unsubscribe();
-  }, [toast]);
+  }, [toast, branchId]);
 
   const handleAddInventory = async () => {
     const itemQuantity = parseInt(quantity);
@@ -73,6 +80,7 @@ export function Inventory() {
         quantity: itemQuantity,
         unitCost: itemUnitCost,
         unitPrice: itemUnitPrice,
+        branchId: branchId,
         timestamp: serverTimestamp(),
       });
 
@@ -105,7 +113,7 @@ export function Inventory() {
       <Card>
         <CardHeader>
           <CardTitle>إضافة صنف للمخزون</CardTitle>
-          <CardDescription>أضف صنفًا جديدًا إلى قائمة المخزون.</CardDescription>
+          <CardDescription>أضف صنفًا جديدًا إلى قائمة مخزون الفرع المحدد.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
@@ -152,7 +160,7 @@ export function Inventory() {
               disabled={isLoading}
             />
           </div>
-          <Button onClick={handleAddInventory} disabled={isLoading} className="w-full">
+          <Button onClick={handleAddInventory} disabled={isLoading || !branchId} className="w-full">
             {isLoading ? "جاري الإضافة..." : "إضافة صنف"}
           </Button>
         </CardContent>
@@ -161,12 +169,12 @@ export function Inventory() {
       <Card>
         <CardHeader>
           <CardTitle>قائمة المخزون</CardTitle>
-          <CardDescription>قائمة بجميع الأصناف المتوفرة في المخزون.</CardDescription>
+          <CardDescription>قائمة بجميع الأصناف المتوفرة في مخزون الفرع المحدد.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3 h-96 overflow-y-auto pr-2">
             {inventory.length === 0 ? (
-              <p className="text-center text-muted-foreground pt-10">لا توجد أصناف في المخزون بعد.</p>
+              <p className="text-center text-muted-foreground pt-10">لا توجد أصناف في المخزون بعد لهذا الفرع.</p>
             ) : (
               inventory.map((item) => (
                 <div key={item.id} className="p-3 rounded-lg flex justify-between items-start bg-muted">

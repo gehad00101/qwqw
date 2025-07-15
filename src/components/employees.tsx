@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, query, onSnapshot, serverTimestamp, orderBy, deleteDoc, doc } from "firebase/firestore";
+import { collection, addDoc, query, onSnapshot, serverTimestamp, orderBy, deleteDoc, doc, where } from "firebase/firestore";
 
 interface Employee {
   id: string;
@@ -16,7 +16,11 @@ interface Employee {
   timestamp: any;
 }
 
-export function Employees() {
+interface EmployeesProps {
+  branchId: string;
+}
+
+export function Employees({ branchId }: EmployeesProps) {
   const { toast } = useToast();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -24,10 +28,13 @@ export function Employees() {
   const [role, setRole] = useState("");
 
   useEffect(() => {
-    if (!db) return;
+    if (!db || !branchId) {
+      setEmployees([]);
+      return;
+    }
 
     const employeesCollectionRef = collection(db, 'employees');
-    const q = query(employeesCollectionRef, orderBy("timestamp", "desc"));
+    const q = query(employeesCollectionRef, where("branchId", "==", branchId), orderBy("timestamp", "desc"));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const employeesData = snapshot.docs.map(doc => ({
@@ -45,7 +52,7 @@ export function Employees() {
     });
 
     return () => unsubscribe();
-  }, [toast]);
+  }, [toast, branchId]);
 
   const handleAddEmployee = async () => {
     if (!name || !role) {
@@ -64,6 +71,7 @@ export function Employees() {
       await addDoc(employeesCollectionRef, {
         name,
         role,
+        branchId: branchId,
         timestamp: serverTimestamp(),
       });
 
@@ -112,7 +120,7 @@ export function Employees() {
       <Card>
         <CardHeader>
           <CardTitle>إضافة موظف جديد</CardTitle>
-          <CardDescription>أضف موظفًا جديدًا إلى سجلات الشركة.</CardDescription>
+          <CardDescription>أضف موظفًا جديدًا إلى سجلات الفرع المحدد.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
@@ -141,7 +149,7 @@ export function Employees() {
                 </SelectContent>
             </Select>
           </div>
-          <Button onClick={handleAddEmployee} disabled={isLoading} className="w-full">
+          <Button onClick={handleAddEmployee} disabled={isLoading || !branchId} className="w-full">
             {isLoading ? "جاري الإضافة..." : "إضافة موظف"}
           </Button>
         </CardContent>
@@ -150,12 +158,12 @@ export function Employees() {
       <Card>
         <CardHeader>
           <CardTitle>سجل الموظفين</CardTitle>
-          <CardDescription>قائمة بجميع الموظفين الحاليين.</CardDescription>
+          <CardDescription>قائمة بجميع الموظفين الحاليين في الفرع المحدد.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3 h-96 overflow-y-auto pr-2">
             {employees.length === 0 ? (
-              <p className="text-center text-muted-foreground pt-10">لا يوجد موظفين مسجلين بعد.</p>
+              <p className="text-center text-muted-foreground pt-10">لا يوجد موظفين مسجلين بعد لهذا الفرع.</p>
             ) : (
               employees.map((employee) => (
                 <div key={employee.id} className="p-3 rounded-lg flex justify-between items-center bg-muted">

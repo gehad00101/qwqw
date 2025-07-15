@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { db } from "@/lib/firebase";
-import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
+import { collection, query, onSnapshot, orderBy, where } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 
 interface Transaction {
@@ -17,7 +17,11 @@ interface Transaction {
   timestamp: any;
 }
 
-export function Reports() {
+interface ReportsProps {
+  branchId: string;
+}
+
+export function Reports({ branchId }: ReportsProps) {
   const { toast } = useToast();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [totalSales, setTotalSales] = useState(0);
@@ -25,10 +29,13 @@ export function Reports() {
   const [netProfit, setNetProfit] = useState(0);
 
   useEffect(() => {
-    if (!db) return;
+    if (!db || !branchId) {
+      setTransactions([]);
+      return;
+    };
 
     const salesCollectionRef = collection(db, 'sales');
-    const qSales = query(salesCollectionRef, orderBy("timestamp", "desc"));
+    const qSales = query(salesCollectionRef, where("branchId", "==", branchId), orderBy("timestamp", "desc"));
     const unsubscribeSales = onSnapshot(qSales, (snapshot) => {
       const salesData = snapshot.docs.map(doc => ({ type: 'sale', id: doc.id, ...doc.data() } as Transaction));
       setTransactions(prev => [...salesData, ...prev.filter(t => t.type !== 'sale')]);
@@ -38,7 +45,7 @@ export function Reports() {
     });
 
     const expensesCollectionRef = collection(db, 'expenses');
-    const qExpenses = query(expensesCollectionRef, orderBy("timestamp", "desc"));
+    const qExpenses = query(expensesCollectionRef, where("branchId", "==", branchId), orderBy("timestamp", "desc"));
     const unsubscribeExpenses = onSnapshot(qExpenses, (snapshot) => {
       const expensesData = snapshot.docs.map(doc => ({ type: 'expense', id: doc.id, ...doc.data() } as Transaction));
        setTransactions(prev => [...expensesData, ...prev.filter(t => t.type !== 'expense')]);
@@ -51,7 +58,7 @@ export function Reports() {
       unsubscribeSales();
       unsubscribeExpenses();
     };
-  }, [toast]);
+  }, [toast, branchId]);
   
   useEffect(() => {
     const sales = transactions.filter(t => t.type === 'sale');
@@ -72,7 +79,7 @@ export function Reports() {
       <Card>
           <CardHeader>
               <CardTitle>الملخص المالي</CardTitle>
-              <CardDescription>نظرة عامة على الوضع المالي للمقهى.</CardDescription>
+              <CardDescription>نظرة عامة على الوضع المالي للفرع المحدد.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-3">
              <div className="p-4 bg-muted rounded-lg">
@@ -93,7 +100,7 @@ export function Reports() {
       <Card>
         <CardHeader>
             <CardTitle>سجل المعاملات</CardTitle>
-            <CardDescription>قائمة بكل المعاملات المالية المسجلة.</CardDescription>
+            <CardDescription>قائمة بكل المعاملات المالية المسجلة للفرع المحدد.</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -108,7 +115,7 @@ export function Reports() {
             <TableBody>
               {sortedTransactions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center">لا توجد معاملات مسجلة بعد.</TableCell>
+                  <TableCell colSpan={4} className="text-center">لا توجد معاملات مسجلة بعد لهذا الفرع.</TableCell>
                 </TableRow>
               ) : (
                 sortedTransactions.map((tx) => (

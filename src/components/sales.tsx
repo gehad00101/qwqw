@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, query, onSnapshot, serverTimestamp, orderBy } from "firebase/firestore";
+import { collection, addDoc, query, onSnapshot, serverTimestamp, orderBy, where } from "firebase/firestore";
 
 interface Sale {
   id: string;
@@ -17,7 +17,11 @@ interface Sale {
   timestamp: any;
 }
 
-export function Sales() {
+interface SalesProps {
+  branchId: string;
+}
+
+export function Sales({ branchId }: SalesProps) {
   const { toast } = useToast();
   const [sales, setSales] = useState<Sale[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,10 +30,13 @@ export function Sales() {
   const [description, setDescription] = useState("");
 
   useEffect(() => {
-    if (!db) return;
+    if (!db || !branchId) {
+      setSales([]);
+      return;
+    };
 
     const salesCollectionRef = collection(db, 'sales');
-    const q = query(salesCollectionRef, orderBy("timestamp", "desc"));
+    const q = query(salesCollectionRef, where("branchId", "==", branchId), orderBy("timestamp", "desc"));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const salesData = snapshot.docs.map(doc => ({
@@ -47,7 +54,7 @@ export function Sales() {
     });
 
     return () => unsubscribe();
-  }, [toast]);
+  }, [toast, branchId]);
 
   const handleAddSale = async () => {
     const saleAmount = parseFloat(amount);
@@ -68,6 +75,7 @@ export function Sales() {
         amount: saleAmount,
         date: date,
         description: description,
+        branchId: branchId,
         timestamp: serverTimestamp(),
       });
 
@@ -99,7 +107,7 @@ export function Sales() {
       <Card>
         <CardHeader>
           <CardTitle>إدخال مبيعة جديدة</CardTitle>
-          <CardDescription>أضف معاملة مبيعات جديدة إلى سجلك.</CardDescription>
+          <CardDescription>أضف معاملة مبيعات جديدة إلى سجلك للفرع المحدد.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
@@ -133,7 +141,7 @@ export function Sales() {
               disabled={isLoading}
             />
           </div>
-          <Button onClick={handleAddSale} disabled={isLoading} className="w-full">
+          <Button onClick={handleAddSale} disabled={isLoading || !branchId} className="w-full">
             {isLoading ? "جاري الإضافة..." : "إضافة مبيعة"}
           </Button>
         </CardContent>
@@ -142,12 +150,12 @@ export function Sales() {
       <Card>
         <CardHeader>
           <CardTitle>سجل المبيعات</CardTitle>
-          <CardDescription>قائمة بآخر المبيعات المسجلة.</CardDescription>
+          <CardDescription>قائمة بآخر المبيعات المسجلة للفرع المحدد.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3 h-96 overflow-y-auto pr-2">
             {sales.length === 0 ? (
-              <p className="text-center text-muted-foreground pt-10">لا توجد مبيعات مسجلة بعد.</p>
+              <p className="text-center text-muted-foreground pt-10">لا توجد مبيعات مسجلة بعد لهذا الفرع.</p>
             ) : (
               sales.map((sale) => (
                 <div key={sale.id} className="p-3 rounded-lg flex justify-between items-center bg-muted">

@@ -1,9 +1,17 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Menu, GitBranch } from "lucide-react";
+import type { Branch } from '@/components/branches';
 
-export function Header() {
+interface HeaderProps {
+  branches: Branch[];
+  selectedBranchId: string | null;
+  onBranchChange: (branchId: string) => void;
+}
+
+export function Header({ branches, selectedBranchId, onBranchChange }: HeaderProps) {
   return (
     <header className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
       <div className="flex items-center">
@@ -16,7 +24,19 @@ export function Header() {
         </h1>
       </div>
       <div className="flex items-center space-x-4">
-        {/* User Info can go here */}
+        <div className="flex items-center gap-2">
+            <GitBranch className="h-5 w-5 text-muted-foreground" />
+            <Select onValueChange={onBranchChange} value={selectedBranchId || ''}>
+                <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="اختر فرعًا..." />
+                </SelectTrigger>
+                <SelectContent>
+                    {branches.map(branch => (
+                        <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </div>
       </div>
     </header>
   );

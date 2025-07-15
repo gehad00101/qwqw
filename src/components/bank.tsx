@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, query, onSnapshot, serverTimestamp, orderBy, doc, getDoc, setDoc } from "firebase/firestore";
+import { collection, addDoc, query, onSnapshot, serverTimestamp, orderBy, doc, getDoc, setDoc, where } from "firebase/firestore";
 
 interface BankTransaction {
   id: string;
@@ -18,7 +18,11 @@ interface BankTransaction {
   timestamp: any;
 }
 
-export function Bank() {
+interface BankProps {
+  branchId: string;
+}
+
+export function Bank({ branchId }: BankProps) {
   const { toast } = useToast();
   const [transactions, setTransactions] = useState<BankTransaction[]>([]);
   const [balance, setBalance] = useState(0);
@@ -28,23 +32,27 @@ export function Bank() {
   const [description, setDescription] = useState("");
 
   useEffect(() => {
-    if (!db) return;
+    if (!db || !branchId) {
+        setBalance(0);
+        setTransactions([]);
+        return;
+    };
 
     // Listener for Bank Balance
-    const balanceDocRef = doc(db, 'bank_balance', 'main');
+    const balanceDocRef = doc(db, 'bank_balance', branchId);
     const unsubscribeBalance = onSnapshot(balanceDocRef, (docSnap) => {
       if (docSnap.exists()) {
         setBalance(docSnap.data().amount);
       } else {
         // Initialize balance if it doesn't exist
-        setDoc(balanceDocRef, { amount: 0, lastUpdated: serverTimestamp() });
+        setDoc(balanceDocRef, { amount: 0, lastUpdated: serverTimestamp(), branchId: branchId });
         setBalance(0);
       }
     });
 
     // Listener for Bank Transactions
     const transactionsCollectionRef = collection(db, 'bank_transactions');
-    const q = query(transactionsCollectionRef, orderBy("timestamp", "desc"));
+    const q = query(transactionsCollectionRef, where("branchId", "==", branchId), orderBy("timestamp", "desc"));
     const unsubscribeTransactions = onSnapshot(q, (snapshot) => {
       const transData = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -64,7 +72,7 @@ export function Bank() {
       unsubscribeBalance();
       unsubscribeTransactions();
     };
-  }, [toast]);
+  }, [toast, branchId]);
 
   const handleTransaction = async (type: 'deposit' | 'withdrawal') => {
     const transactionAmount = parseFloat(amount);
@@ -97,13 +105,14 @@ export function Bank() {
         date: date,
         description: description,
         type: type,
+        branchId: branchId,
         timestamp: serverTimestamp(),
       });
 
       // Update balance
-      const balanceDocRef = doc(db, 'bank_balance', 'main');
+      const balanceDocRef = doc(db, 'bank_balance', branchId);
       const newBalance = type === 'deposit' ? balance + transactionAmount : balance - transactionAmount;
-      await setDoc(balanceDocRef, { amount: newBalance, lastUpdated: serverTimestamp() });
+      await setDoc(balanceDocRef, { amount: newBalance, lastUpdated: serverTimestamp() }, { merge: true });
       
       toast({
         title: "نجاح",
@@ -133,7 +142,7 @@ export function Bank() {
       <Card>
         <CardHeader>
           <CardTitle>إدارة الحساب البنكي</CardTitle>
-          <CardDescription>إيداع أو سحب الأموال من الحساب البنكي.</CardDescription>
+          <CardDescription>إيداع أو سحب الأموال من الحساب البنكي للفرع المحدد.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="p-4 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg text-center">
@@ -172,10 +181,10 @@ export function Bank() {
             />
           </div>
           <div className="flex gap-4">
-            <Button onClick={() => handleTransaction('deposit')} disabled={isLoading} className="w-full bg-green-600 hover:bg-green-700">
+            <Button onClick={() => handleTransaction('deposit')} disabled={isLoading || !branchId} className="w-full bg-green-600 hover:bg-green-700">
                 {isLoading ? "جاري..." : "إيداع"}
             </Button>
-            <Button onClick={() => handleTransaction('withdrawal')} disabled={isLoading} className="w-full" variant="destructive">
+            <Button onClick={() => handleTransaction('withdrawal')} disabled={isLoading || !branchId} className="w-full" variant="destructive">
                 {isLoading ? "جاري..." : "سحب"}
             </Button>
           </div>
@@ -185,12 +194,12 @@ export function Bank() {
       <Card>
         <CardHeader>
           <CardTitle>سجل المعاملات البنكية</CardTitle>
-          <CardDescription>قائمة بآخر المعاملات البنكية المسجلة.</CardDescription>
+          <CardDescription>قائمة بآخر المعاملات البنكية المسجلة للفرع المحدد.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3 h-96 overflow-y-auto pr-2">
             {transactions.length === 0 ? (
-              <p className="text-center text-muted-foreground pt-10">لا توجد معاملات مسجلة بعد.</p>
+              <p className="text-center text-muted-foreground pt-10">لا توجد معاملات مسجلة بعد لهذا الفرع.</p>
             ) : (
               transactions.map((tx) => (
                 <div key={tx.id} className={`p-3 rounded-lg flex justify-between items-center ${tx.type === 'deposit' ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'}`}>
