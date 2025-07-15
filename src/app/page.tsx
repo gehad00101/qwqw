@@ -11,13 +11,14 @@ import { Reports } from '@/components/reports';
 import { Employees } from '@/components/employees';
 import { Bank } from '@/components/bank';
 import { Branches, type Branch } from '@/components/branches';
+import { UsersManagement } from '@/components/users-management';
 import { useToast } from "@/hooks/use-toast";
 import { db, auth } from "@/lib/firebase";
 import { collection, onSnapshot, query, doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { Login } from "@/components/login";
 
-type Page = 'dashboard' | 'sales' | 'expenses' | 'inventory' | 'reports' | 'employees' | 'bank' | 'branches';
+type Page = 'dashboard' | 'sales' | 'expenses' | 'inventory' | 'reports' | 'employees' | 'bank' | 'branches' | 'users';
 
 export type UserRole = 'owner' | 'accountant' | 'manager';
 
@@ -45,7 +46,12 @@ export default function CafeAccountingSystem() {
         const userDocRef = doc(db, 'users', currentUser.uid);
         const userDocSnap = await getDoc(userDocRef);
         if (userDocSnap.exists()) {
-          setUserProfile(userDocSnap.data() as UserProfile);
+          const profile = userDocSnap.data() as UserProfile;
+          setUserProfile(profile);
+          // if user is a manager, lock their active page to non-sensitive pages
+          if(profile.role === 'manager' && (activePage === 'reports' || activePage === 'branches' || activePage === 'users')){
+              setActivePage('dashboard');
+          }
         } else {
           // Handle case where user exists in Auth but not in Firestore
           setUserProfile(null); 
@@ -57,7 +63,7 @@ export default function CafeAccountingSystem() {
       setLoadingAuth(false);
     });
     return () => unsubscribe();
-  }, [toast]);
+  }, [toast, activePage]);
 
   useEffect(() => {
     if (!db || !userProfile) return;
@@ -112,7 +118,7 @@ export default function CafeAccountingSystem() {
   }, [selectedBranchId, userProfile]);
 
   const renderPage = () => {
-    if (!selectedBranchId && activePage !== 'branches') {
+    if (!selectedBranchId && !['branches', 'users'].includes(activePage)) {
        return (
         <div className="text-center p-10">
           <h2 className="text-2xl font-bold">الرجاء تحديد فرع</h2>
@@ -140,6 +146,8 @@ export default function CafeAccountingSystem() {
         return <Bank branchId={selectedBranchId!} readOnly={readOnly} />;
       case 'branches':
         return <Branches readOnly={readOnly}/>;
+      case 'users':
+        return <UsersManagement branches={branches} />;
       default:
         return <Dashboard branchId={selectedBranchId!} />;
     }

@@ -12,10 +12,11 @@ import {
   Users,
   Landmark,
   GitBranch,
+  ShieldCheck,
 } from "lucide-react";
 import type { UserRole } from "@/app/page";
 
-type Page = 'dashboard' | 'sales' | 'expenses' | 'inventory' | 'reports' | 'employees' | 'bank' | 'branches';
+type Page = 'dashboard' | 'sales' | 'expenses' | 'inventory' | 'reports' | 'employees' | 'bank' | 'branches' | 'users';
 
 interface SidebarProps {
   activePage: Page;
@@ -32,6 +33,7 @@ const navItems = [
   { id: 'bank', label: 'البنك', icon: Landmark, roles: ['owner', 'accountant', 'manager'] },
   { id: 'reports', label: 'التقارير', icon: BarChart, roles: ['owner', 'accountant'] },
   { id: 'branches', label: 'الفروع', icon: GitBranch, roles: ['owner', 'accountant'] },
+  { id: 'users', label: 'إدارة المستخدمين', icon: ShieldCheck, roles: ['owner'] },
 ];
 
 export function Sidebar({ activePage, setActivePage, userRole }: SidebarProps) {
