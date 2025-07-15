@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export function Login() {
   const [email, setEmail] = useState("n9212993@gmail.com");
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState("123456");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
