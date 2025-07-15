@@ -32,20 +32,6 @@ export const CreateUserOutputSchema = z.object({
 });
 export type CreateUserOutput = z.infer<typeof CreateUserOutputSchema>;
 
-// Initialize Firebase Admin SDK
-function initializeFirebaseAdmin(): App {
-    if (getApps().length > 0) {
-        return getApp();
-    }
-    const serviceAccount = process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT;
-    if (!serviceAccount) {
-        throw new Error("FIREBASE_ADMIN_SERVICE_ACCOUNT environment variable is not set.");
-    }
-    return initializeApp({
-        credential: cert(JSON.parse(serviceAccount)),
-    });
-}
-
 // Main exported function that calls the flow
 export async function createUser(input: CreateUserInput): Promise<CreateUserOutput> {
   return createUserFlow(input);
@@ -59,6 +45,20 @@ const createUserFlow = ai.defineFlow(
     outputSchema: CreateUserOutputSchema,
   },
   async (input) => {
+    // Initialize Firebase Admin SDK inside the flow
+    function initializeFirebaseAdmin(): App {
+        if (getApps().length > 0) {
+            return getApp();
+        }
+        const serviceAccount = process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT;
+        if (!serviceAccount) {
+            throw new Error("FIREBASE_ADMIN_SERVICE_ACCOUNT environment variable is not set.");
+        }
+        return initializeApp({
+            credential: cert(JSON.parse(serviceAccount)),
+        });
+    }
+
     try {
       const adminApp = initializeFirebaseAdmin();
       const adminAuth = getAuth(adminApp);
