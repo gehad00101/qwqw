@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -34,26 +35,28 @@ export default function CafeAccountingSystem() {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const { toast } = useToast();
-  const [user, setUser] = useState<User | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [loadingAuth, setLoadingAuth] = useState(true);
+  // We will now use a default owner profile to bypass login
+  const [userProfile, setUserProfile] = useState<UserProfile>({
+    uid: 'default-owner-id',
+    email: 'n9212993@gmail.com',
+    role: 'owner',
+  });
 
   useEffect(() => {
-    if (!auth) return;
+    // We can remove the auth listener for now, as we are bypassing login.
+    // If you want to re-enable login, you can uncomment this section.
+    /*
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
       if (currentUser) {
         const userDocRef = doc(db, 'users', currentUser.uid);
         const userDocSnap = await getDoc(userDocRef);
         if (userDocSnap.exists()) {
           const profile = userDocSnap.data() as UserProfile;
           setUserProfile(profile);
-          // if user is a manager, lock their active page to non-sensitive pages
           if(profile.role === 'manager' && (activePage === 'reports' || activePage === 'branches' || activePage === 'users')){
               setActivePage('dashboard');
           }
         } else {
-          // This is a first sign-in. Check if it's the designated owner.
           if (currentUser.email === 'n9212993@gmail.com' && !userDocSnap.exists()) {
               const ownerProfile: UserProfile = {
                 uid: currentUser.uid,
@@ -63,7 +66,6 @@ export default function CafeAccountingSystem() {
               await setDoc(userDocRef, ownerProfile);
               setUserProfile(ownerProfile);
           } else {
-              // Not the owner, and no profile exists. Treat as unauthorized.
               console.warn(`Unauthorized login attempt by: ${currentUser.email}`);
               setUserProfile(null);
           }
@@ -71,9 +73,9 @@ export default function CafeAccountingSystem() {
       } else {
         setUserProfile(null);
       }
-      setLoadingAuth(false);
     });
     return () => unsubscribe();
+    */
   }, [toast, activePage]);
 
   useEffect(() => {
@@ -84,7 +86,6 @@ export default function CafeAccountingSystem() {
 
     const unsubscribe = onSnapshot(q, async (snapshot) => {
       if (snapshot.empty) {
-        // If no branches exist and the user is the owner, create a default one.
         if (userProfile.role === 'owner') {
           try {
             const defaultBranchRef = doc(db, 'branches', 'main_branch');
@@ -180,13 +181,14 @@ export default function CafeAccountingSystem() {
     }
   };
   
-  if (loadingAuth) {
-      return <div className="flex h-screen w-full items-center justify-center">جاري تحميل نظام المحاسبة...</div>
-  }
+  // Since we are bypassing login, we no longer need the loading or login screens.
+  // if (loadingAuth) {
+  //     return <div className="flex h-screen w-full items-center justify-center">جاري تحميل نظام المحاسبة...</div>
+  // }
+  // if (!userProfile) {
+  //     return <Login />;
+  // }
 
-  if (!user || !userProfile) {
-      return <Login branches={branches}/>;
-  }
 
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
