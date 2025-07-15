@@ -24,7 +24,7 @@ const GenerateCodeSnippetOutputSchema = z.object({
 });
 export type GenerateCodeSnippetOutput = z.infer<typeof GenerateCodeSnippetOutputSchema>;
 
-export Add usernction generateCodeSnippet(input: GenerateCodeSnippetInput): Promise<GenerateCodeSnippetOutput> {
+export async function generateCodeSnippet(input: GenerateCodeSnippetInput): Promise<GenerateCodeSnippetOutput> {
   return generateCodeSnippetFlow(input);
 }
 
