@@ -13,26 +13,30 @@ import {
   Landmark,
   GitBranch,
 } from "lucide-react";
+import type { UserRole } from "@/app/page";
 
 type Page = 'dashboard' | 'sales' | 'expenses' | 'inventory' | 'reports' | 'employees' | 'bank' | 'branches';
 
 interface SidebarProps {
   activePage: Page;
   setActivePage: (page: Page) => void;
+  userRole: UserRole;
 }
 
 const navItems = [
-  { id: 'dashboard', label: 'الرئيسية', icon: LayoutDashboard },
-  { id: 'sales', label: 'المبيعات', icon: TrendingUp },
-  { id: 'expenses', label: 'المصروفات', icon: TrendingDown },
-  { id: 'inventory', label: 'المخزون', icon: Warehouse },
-  { id: 'employees', label: 'الموظفين', icon: Users },
-  { id: 'bank', label: 'البنك', icon: Landmark },
-  { id: 'reports', label: 'التقارير', icon: BarChart },
-  { id: 'branches', label: 'الفروع', icon: GitBranch },
+  { id: 'dashboard', label: 'الرئيسية', icon: LayoutDashboard, roles: ['owner', 'accountant', 'manager'] },
+  { id: 'sales', label: 'المبيعات', icon: TrendingUp, roles: ['owner', 'accountant', 'manager'] },
+  { id: 'expenses', label: 'المصروفات', icon: TrendingDown, roles: ['owner', 'accountant', 'manager'] },
+  { id: 'inventory', label: 'المخزون', icon: Warehouse, roles: ['owner', 'accountant', 'manager'] },
+  { id: 'employees', label: 'الموظفين', icon: Users, roles: ['owner', 'accountant', 'manager'] },
+  { id: 'bank', label: 'البنك', icon: Landmark, roles: ['owner', 'accountant', 'manager'] },
+  { id: 'reports', label: 'التقارير', icon: BarChart, roles: ['owner', 'accountant'] },
+  { id: 'branches', label: 'الفروع', icon: GitBranch, roles: ['owner', 'accountant'] },
 ];
 
-export function Sidebar({ activePage, setActivePage }: SidebarProps) {
+export function Sidebar({ activePage, setActivePage, userRole }: SidebarProps) {
+  const filteredNavItems = navItems.filter(item => item.roles.includes(userRole));
+
   return (
     <aside className="hidden md:flex flex-col w-64 bg-gray-800 text-white">
       <div className="flex items-center justify-center h-20 border-b border-gray-700">
@@ -40,7 +44,7 @@ export function Sidebar({ activePage, setActivePage }: SidebarProps) {
         <h1 className="text-2xl font-bold ml-2">مقهى</h1>
       </div>
       <nav className="flex-1 px-2 py-4 space-y-2">
-        {navItems.map((item) => (
+        {filteredNavItems.map((item) => (
           <Button
             key={item.id}
             variant="ghost"

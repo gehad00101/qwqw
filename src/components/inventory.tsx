@@ -19,9 +19,10 @@ interface InventoryItem {
 
 interface InventoryProps {
   branchId: string;
+  readOnly: boolean;
 }
 
-export function Inventory({ branchId }: InventoryProps) {
+export function Inventory({ branchId, readOnly }: InventoryProps) {
   const { toast } = useToast();
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -124,7 +125,7 @@ export function Inventory({ branchId }: InventoryProps) {
               placeholder="حبوب بن كولومبية"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || readOnly}
             />
           </div>
           <div>
@@ -135,7 +136,7 @@ export function Inventory({ branchId }: InventoryProps) {
               placeholder="10"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || readOnly}
             />
           </div>
           <div>
@@ -146,7 +147,7 @@ export function Inventory({ branchId }: InventoryProps) {
               placeholder="25.50"
               value={unitCost}
               onChange={(e) => setUnitCost(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || readOnly}
             />
           </div>
            <div>
@@ -157,10 +158,10 @@ export function Inventory({ branchId }: InventoryProps) {
               placeholder="50.00"
               value={unitPrice}
               onChange={(e) => setUnitPrice(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || readOnly}
             />
           </div>
-          <Button onClick={handleAddInventory} disabled={isLoading || !branchId} className="w-full">
+          <Button onClick={handleAddInventory} disabled={isLoading || !branchId || readOnly} className="w-full">
             {isLoading ? "جاري الإضافة..." : "إضافة صنف"}
           </Button>
         </CardContent>

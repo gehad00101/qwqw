@@ -26,7 +26,11 @@ export interface Branch {
   createdAt: any;
 }
 
-export function Branches() {
+interface BranchesProps {
+    readOnly: boolean;
+}
+
+export function Branches({readOnly}: BranchesProps) {
   const { toast } = useToast();
   const [branches, setBranches] = useState<Branch[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -140,10 +144,10 @@ export function Branches() {
               placeholder="مثال: فرع العليا"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || readOnly}
             />
           </div>
-          <Button onClick={handleAddBranch} disabled={isLoading} className="w-full">
+          <Button onClick={handleAddBranch} disabled={isLoading || readOnly} className="w-full">
             {isLoading ? "جاري الإضافة..." : "إضافة فرع"}
           </Button>
         </CardContent>
@@ -167,7 +171,7 @@ export function Branches() {
                   </div>
                    <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="destructive" size="sm">حذف</Button>
+                        <Button variant="destructive" size="sm" disabled={readOnly}>حذف</Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>

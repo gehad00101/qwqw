@@ -19,9 +19,10 @@ interface Sale {
 
 interface SalesProps {
   branchId: string;
+  readOnly: boolean;
 }
 
-export function Sales({ branchId }: SalesProps) {
+export function Sales({ branchId, readOnly }: SalesProps) {
   const { toast } = useToast();
   const [sales, setSales] = useState<Sale[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -118,7 +119,7 @@ export function Sales({ branchId }: SalesProps) {
               placeholder="150.75"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || readOnly}
             />
           </div>
           <div>
@@ -128,7 +129,7 @@ export function Sales({ branchId }: SalesProps) {
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || readOnly}
             />
           </div>
           <div>
@@ -138,10 +139,10 @@ export function Sales({ branchId }: SalesProps) {
               placeholder="وصف مختصر للمبيعة"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || readOnly}
             />
           </div>
-          <Button onClick={handleAddSale} disabled={isLoading || !branchId} className="w-full">
+          <Button onClick={handleAddSale} disabled={isLoading || !branchId || readOnly} className="w-full">
             {isLoading ? "جاري الإضافة..." : "إضافة مبيعة"}
           </Button>
         </CardContent>

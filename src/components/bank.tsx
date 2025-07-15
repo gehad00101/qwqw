@@ -20,9 +20,10 @@ interface BankTransaction {
 
 interface BankProps {
   branchId: string;
+  readOnly: boolean;
 }
 
-export function Bank({ branchId }: BankProps) {
+export function Bank({ branchId, readOnly }: BankProps) {
   const { toast } = useToast();
   const [transactions, setTransactions] = useState<BankTransaction[]>([]);
   const [balance, setBalance] = useState(0);
@@ -157,7 +158,7 @@ export function Bank({ branchId }: BankProps) {
               placeholder="1000.00"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || readOnly}
             />
           </div>
           <div>
@@ -167,7 +168,7 @@ export function Bank({ branchId }: BankProps) {
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || readOnly}
             />
           </div>
           <div>
@@ -177,14 +178,14 @@ export function Bank({ branchId }: BankProps) {
               placeholder="وصف مختصر للمعاملة"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || readOnly}
             />
           </div>
           <div className="flex gap-4">
-            <Button onClick={() => handleTransaction('deposit')} disabled={isLoading || !branchId} className="w-full bg-green-600 hover:bg-green-700">
+            <Button onClick={() => handleTransaction('deposit')} disabled={isLoading || !branchId || readOnly} className="w-full bg-green-600 hover:bg-green-700">
                 {isLoading ? "جاري..." : "إيداع"}
             </Button>
-            <Button onClick={() => handleTransaction('withdrawal')} disabled={isLoading || !branchId} className="w-full" variant="destructive">
+            <Button onClick={() => handleTransaction('withdrawal')} disabled={isLoading || !branchId || readOnly} className="w-full" variant="destructive">
                 {isLoading ? "جاري..." : "سحب"}
             </Button>
           </div>

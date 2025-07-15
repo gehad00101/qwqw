@@ -21,9 +21,10 @@ interface Expense {
 
 interface ExpensesProps {
   branchId: string;
+  readOnly: boolean;
 }
 
-export function Expenses({ branchId }: ExpensesProps) {
+export function Expenses({ branchId, readOnly }: ExpensesProps) {
   const { toast } = useToast();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -123,7 +124,7 @@ export function Expenses({ branchId }: ExpensesProps) {
               placeholder="50.00"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || readOnly}
             />
           </div>
           <div>
@@ -133,12 +134,12 @@ export function Expenses({ branchId }: ExpensesProps) {
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || readOnly}
             />
           </div>
            <div>
             <label htmlFor="expenseCategory" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الفئة</label>
-            <Select onValueChange={setCategory} value={category} disabled={isLoading}>
+            <Select onValueChange={setCategory} value={category} disabled={isLoading || readOnly}>
                 <SelectTrigger id="expenseCategory">
                     <SelectValue placeholder="اختر فئة للمصروف" />
                 </SelectTrigger>
@@ -160,10 +161,10 @@ export function Expenses({ branchId }: ExpensesProps) {
               placeholder="وصف مختصر للمصروف"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || readOnly}
             />
           </div>
-          <Button onClick={handleAddExpense} disabled={isLoading || !branchId} className="w-full">
+          <Button onClick={handleAddExpense} disabled={isLoading || !branchId || readOnly} className="w-full">
             {isLoading ? "جاري الإضافة..." : "إضافة مصروف"}
           </Button>
         </CardContent>

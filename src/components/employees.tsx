@@ -18,9 +18,10 @@ interface Employee {
 
 interface EmployeesProps {
   branchId: string;
+  readOnly: boolean;
 }
 
-export function Employees({ branchId }: EmployeesProps) {
+export function Employees({ branchId, readOnly }: EmployeesProps) {
   const { toast } = useToast();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -131,12 +132,12 @@ export function Employees({ branchId }: EmployeesProps) {
               placeholder="مثال: أحمد محمد"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || readOnly}
             />
           </div>
            <div>
             <label htmlFor="employeeRole" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الدور الوظيفي</label>
-            <Select onValueChange={setRole} value={role} disabled={isLoading}>
+            <Select onValueChange={setRole} value={role} disabled={isLoading || readOnly}>
                 <SelectTrigger id="employeeRole">
                     <SelectValue placeholder="اختر دور الموظف" />
                 </SelectTrigger>
@@ -149,7 +150,7 @@ export function Employees({ branchId }: EmployeesProps) {
                 </SelectContent>
             </Select>
           </div>
-          <Button onClick={handleAddEmployee} disabled={isLoading || !branchId} className="w-full">
+          <Button onClick={handleAddEmployee} disabled={isLoading || !branchId || readOnly} className="w-full">
             {isLoading ? "جاري الإضافة..." : "إضافة موظف"}
           </Button>
         </CardContent>
@@ -171,7 +172,7 @@ export function Employees({ branchId }: EmployeesProps) {
                     <p className="font-semibold text-primary">{employee.name}</p>
                     <p className="text-sm text-muted-foreground">{employee.role}</p>
                   </div>
-                   <Button variant="destructive" size="sm" onClick={() => handleDeleteEmployee(employee.id)}>حذف</Button>
+                   <Button variant="destructive" size="sm" onClick={() => handleDeleteEmployee(employee.id)} disabled={readOnly}>حذف</Button>
                 </div>
               ))
             )}

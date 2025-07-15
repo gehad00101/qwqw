@@ -2,6 +2,7 @@
 
 import { initializeApp, getApps, getApp, type FirebaseOptions } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 
 // الصق كائن firebaseConfig الذي نسخته من لوحة تحكم Firebase هنا
 const firebaseConfig: FirebaseOptions = {
@@ -16,6 +17,7 @@ const firebaseConfig: FirebaseOptions = {
 
 let app;
 let db;
+let auth;
 
 try {
   if (getApps().length === 0) {
@@ -25,10 +27,11 @@ try {
   }
   
   db = getFirestore(app);
+  auth = getAuth(app);
 
 } catch (error) {
   console.error("Firebase initialization error:", error);
   // في تطبيق حقيقي، يمكنك عرض رسالة خطأ للمستخدم هنا
 }
 
-export { app, db };
+export { app, db, auth };

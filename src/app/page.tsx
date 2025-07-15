@@ -12,19 +12,55 @@ import { Employees } from '@/components/employees';
 import { Bank } from '@/components/bank';
 import { Branches, type Branch } from '@/components/branches';
 import { useToast } from "@/hooks/use-toast";
-import { db } from "@/lib/firebase";
-import { collection, onSnapshot, query, addDoc, serverTimestamp, doc, setDoc } from "firebase/firestore";
+import { db, auth } from "@/lib/firebase";
+import { collection, onSnapshot, query, doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import { onAuthStateChanged, type User } from "firebase/auth";
+import { Login } from "@/components/login";
 
 type Page = 'dashboard' | 'sales' | 'expenses' | 'inventory' | 'reports' | 'employees' | 'bank' | 'branches';
+
+export type UserRole = 'owner' | 'accountant' | 'manager';
+
+export interface UserProfile {
+  uid: string;
+  email: string;
+  role: UserRole;
+  branchId?: string; // For manager role
+}
 
 export default function CafeAccountingSystem() {
   const [activePage, setActivePage] = useState<Page>('dashboard');
   const [branches, setBranches] = useState<Branch[]>([]);
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const { toast } = useToast();
+  const [user, setUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [loadingAuth, setLoadingAuth] = useState(true);
 
   useEffect(() => {
-    if (!db) return;
+    if (!auth) return;
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+          setUserProfile(userDocSnap.data() as UserProfile);
+        } else {
+          // Handle case where user exists in Auth but not in Firestore
+          setUserProfile(null); 
+          toast({ title: "خطأ في الحساب", description: "لم يتم العثور على ملف تعريف المستخدم.", variant: "destructive"});
+        }
+      } else {
+        setUserProfile(null);
+      }
+      setLoadingAuth(false);
+    });
+    return () => unsubscribe();
+  }, [toast]);
+
+  useEffect(() => {
+    if (!db || !userProfile) return;
 
     const branchesCollectionRef = collection(db, 'branches');
     const q = query(branchesCollectionRef);
@@ -39,7 +75,6 @@ export default function CafeAccountingSystem() {
             name: 'الفرع الرئيسي',
             createdAt: serverTimestamp()
           });
-          // The listener will pick up the new branch.
         } catch (error) {
            console.error("Error creating default branch: ", error);
         }
@@ -47,11 +82,15 @@ export default function CafeAccountingSystem() {
         const branchesData = snapshot.docs.map(doc => doc.data() as Branch);
         setBranches(branchesData);
         
-        const storedBranchId = localStorage.getItem('selectedBranchId');
-        if (storedBranchId && branchesData.some(b => b.id === storedBranchId)) {
-          setSelectedBranchId(storedBranchId);
-        } else if (branchesData.length > 0) {
-          setSelectedBranchId(branchesData[0].id);
+        if (userProfile.role === 'manager' && userProfile.branchId) {
+          setSelectedBranchId(userProfile.branchId);
+        } else {
+            const storedBranchId = localStorage.getItem('selectedBranchId');
+            if (storedBranchId && branchesData.some(b => b.id === storedBranchId)) {
+              setSelectedBranchId(storedBranchId);
+            } else if (branchesData.length > 0) {
+              setSelectedBranchId(branchesData[0].id);
+            }
         }
       }
     }, (error) => {
@@ -64,13 +103,13 @@ export default function CafeAccountingSystem() {
     });
 
     return () => unsubscribe();
-  }, [toast]);
+  }, [toast, userProfile]);
 
   useEffect(() => {
-    if (selectedBranchId) {
+    if (selectedBranchId && userProfile?.role !== 'manager') {
       localStorage.setItem('selectedBranchId', selectedBranchId);
     }
-  }, [selectedBranchId]);
+  }, [selectedBranchId, userProfile]);
 
   const renderPage = () => {
     if (!selectedBranchId && activePage !== 'branches') {
@@ -82,36 +121,47 @@ export default function CafeAccountingSystem() {
       );
     }
     
+    const readOnly = userProfile?.role === 'accountant';
+
     switch (activePage) {
       case 'dashboard':
         return <Dashboard branchId={selectedBranchId!} />;
       case 'sales':
-        return <Sales branchId={selectedBranchId!} />;
+        return <Sales branchId={selectedBranchId!} readOnly={readOnly} />;
       case 'expenses':
-        return <Expenses branchId={selectedBranchId!} />;
+        return <Expenses branchId={selectedBranchId!} readOnly={readOnly} />;
       case 'inventory':
-        return <Inventory branchId={selectedBranchId!} />;
+        return <Inventory branchId={selectedBranchId!} readOnly={readOnly} />;
       case 'reports':
         return <Reports branchId={selectedBranchId!} />;
       case 'employees':
-        return <Employees branchId={selectedBranchId!} />;
+        return <Employees branchId={selectedBranchId!} readOnly={readOnly} />;
       case 'bank':
-        return <Bank branchId={selectedBranchId!} />;
+        return <Bank branchId={selectedBranchId!} readOnly={readOnly} />;
       case 'branches':
-        return <Branches />;
+        return <Branches readOnly={readOnly}/>;
       default:
         return <Dashboard branchId={selectedBranchId!} />;
     }
   };
+  
+  if (loadingAuth) {
+      return <div className="flex h-screen w-full items-center justify-center">جاري تحميل نظام المحاسبة...</div>
+  }
+
+  if (!user || !userProfile) {
+      return <Login />;
+  }
 
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
-      <Sidebar activePage={activePage} setActivePage={setActivePage} />
+      <Sidebar activePage={activePage} setActivePage={setActivePage} userRole={userProfile.role} />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header 
           branches={branches} 
           selectedBranchId={selectedBranchId} 
           onBranchChange={setSelectedBranchId}
+          userProfile={userProfile}
         />
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-900 p-6">
           {renderPage()}
