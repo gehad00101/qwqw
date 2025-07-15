@@ -32,5 +32,10 @@ export type CreateUserOutput = z.infer<typeof CreateUserOutputSchema>;
 // Main exported function that the client component calls.
 // This function in turn calls the actual flow which runs on the server.
 export async function createUser(input: CreateUserInput): Promise<CreateUserOutput> {
-  return createUserFlow(input);
+  // When a user registers through the public form, default their role.
+  const userData = {
+      ...input,
+      role: input.role || 'accountant', // Default to 'accountant'
+  };
+  return createUserFlow(userData);
 }
