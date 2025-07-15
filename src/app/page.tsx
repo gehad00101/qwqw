@@ -1,80 +1,45 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Header } from "@/components/header";
-import { AICodeGenerator } from "@/components/ai-code-generator";
-import { FunctionSearch } from "@/components/function-search";
-import { CodeDisplay } from "@/components/code-display";
-import { SavedSnippets } from "@/components/saved-snippets";
-import { useSavedSnippets, type SavedSnippet } from "@/hooks/use-saved-snippets";
-import { ACCOUNTING_FUNCTIONS, type AccountingFunction } from "@/lib/functions";
-import { Card, CardContent } from "@/components/ui/card";
-import { BookCopy } from "lucide-react";
+import { useState } from 'react';
+import { Sidebar } from '@/components/layout/sidebar';
+import { Header } from '@/components/layout/header';
+import { Dashboard } from '@/components/dashboard';
+import { Sales } from '@/components/sales';
+import { Expenses } from '@/components/expenses';
+import { Inventory } from '@/components/inventory';
+import { Reports } from '@/components/reports';
 
-export default function Home() {
-  const [selectedSnippet, setSelectedSnippet] = useState<SavedSnippet | null>(null);
-  const { savedSnippets, addSnippet, removeSnippet, isSnippetSaved, isLoaded } = useSavedSnippets();
+type Page = 'dashboard' | 'sales' | 'expenses' | 'inventory' | 'reports';
 
-  useEffect(() => {
-    if (ACCOUNTING_FUNCTIONS.length > 0) {
-      setSelectedSnippet(ACCOUNTING_FUNCTIONS[0]);
-    }
-  }, []);
-  
-  const handleSnippetSelect = (snippet: SavedSnippet) => {
-    setSelectedSnippet(snippet);
-  };
+export default function CafeAccountingSystem() {
+  const [activePage, setActivePage] = useState<Page>('dashboard');
 
-  const handleSaveToggle = (snippetId: string) => {
-    if (!selectedSnippet) return;
-    if (isSnippetSaved(snippetId)) {
-      removeSnippet(snippetId);
-    } else {
-      addSnippet(selectedSnippet);
+  const renderPage = () => {
+    switch (activePage) {
+      case 'dashboard':
+        return <Dashboard />;
+      case 'sales':
+        return <Sales />;
+      case 'expenses':
+        return <Expenses />;
+      case 'inventory':
+        return <Inventory />;
+      case 'reports':
+        return <Reports />;
+      default:
+        return <Dashboard />;
     }
   };
-
-  const handleSelectSaved = (snippet: SavedSnippet) => {
-      setSelectedSnippet(snippet);
-  }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <Header />
-      <main className="flex-1 p-4 md:p-6 grid gap-6 md:grid-cols-[380px_1fr]">
-        <aside className="flex flex-col gap-6">
-          <AICodeGenerator onCodeGenerated={handleSnippetSelect} />
-          <FunctionSearch onFunctionSelect={handleSnippetSelect} selectedFunctionId={selectedSnippet?.id} />
-          <SavedSnippets 
-            snippets={savedSnippets} 
-            onSelect={handleSelectSaved} 
-            onRemove={removeSnippet}
-            selectedSnippetId={selectedSnippet?.id}
-            isLoaded={isLoaded}
-          />
-        </aside>
-        <div className="flex flex-col">
-            {selectedSnippet ? (
-                <CodeDisplay
-                    key={selectedSnippet.id}
-                    id={selectedSnippet.id}
-                    title={selectedSnippet.name}
-                    description={selectedSnippet.description}
-                    code={selectedSnippet.code}
-                    onSaveToggle={() => handleSaveToggle(selectedSnippet.id)}
-                    isSaved={isSnippetSaved(selectedSnippet.id)}
-                />
-            ) : (
-                <Card className="h-full flex items-center justify-center">
-                    <CardContent className="text-center text-muted-foreground pt-6">
-                        <BookCopy className="mx-auto h-12 w-12 mb-4 text-primary" />
-                        <h2 className="text-xl font-semibold">أهلاً بك في كتاب الأكواد المحاسبية</h2>
-                        <p>اختر دالة أو قم بإنشاء كود جديد للبدء.</p>
-                    </CardContent>
-                </Card>
-            )}
-        </div>
-      </main>
+    <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
+      <Sidebar activePage={activePage} setActivePage={setActivePage} />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header />
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-900 p-6">
+          {renderPage()}
+        </main>
+      </div>
     </div>
   );
 }
