@@ -19,7 +19,7 @@ import {
 import type { UserRole } from "@/app/page";
 import { SidebarNav, type NavItem } from "./sidebar-nav";
 
-type Page = 'dashboard' | 'sales' | 'expenses' | 'inventory' | 'reports' | 'employees' | 'bank' | 'branches' | 'users';
+type Page = 'dashboard' | 'sales' | 'expenses' | 'inventory' | 'reports' | 'employees' | 'bank' | 'branches' | 'users' | 'capital' | 'partners' | 'taxes' | 'project_cost';
 
 interface SidebarProps {
   activePage: Page;

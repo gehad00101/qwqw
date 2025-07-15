@@ -13,13 +13,17 @@ import { Employees } from '@/components/employees';
 import { Bank } from '@/components/bank';
 import { Branches, type Branch } from '@/components/branches';
 import { UsersManagement } from '@/components/users-management';
+import { Capital } from '@/components/capital';
+import { Partners } from '@/components/partners';
+import { Taxes } from '@/components/taxes';
+import { ProjectCost } from '@/components/project-cost';
 import { useToast } from "@/hooks/use-toast";
 import { db, auth } from "@/lib/firebase";
 import { collection, onSnapshot, query, doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { Login } from "@/components/login";
 
-type Page = 'dashboard' | 'sales' | 'expenses' | 'inventory' | 'reports' | 'employees' | 'bank' | 'branches' | 'users';
+type Page = 'dashboard' | 'sales' | 'expenses' | 'inventory' | 'reports' | 'employees' | 'bank' | 'branches' | 'users' | 'capital' | 'partners' | 'taxes' | 'project_cost';
 
 export type UserRole = 'owner' | 'accountant' | 'manager' | 'operational_manager';
 
@@ -135,7 +139,8 @@ export default function CafeAccountingSystem() {
   }, [selectedBranchId, userProfile]);
 
   const renderPage = () => {
-    if (!selectedBranchId && userProfile?.role !== 'owner' && !['branches', 'users'].includes(activePage)) {
+    const mainPages = ['capital', 'partners', 'taxes', 'project_cost', 'branches', 'users'];
+    if (!selectedBranchId && userProfile?.role !== 'owner' && !mainPages.includes(activePage)) {
        return (
         <div className="text-center p-10">
           <h2 className="text-2xl font-bold">لم يتم تعيين فرع</h2>
@@ -144,7 +149,7 @@ export default function CafeAccountingSystem() {
       );
     }
 
-    if (!selectedBranchId && userProfile?.role === 'owner' && !['branches', 'users'].includes(activePage)) {
+    if (!selectedBranchId && userProfile?.role === 'owner' && !mainPages.includes(activePage)) {
        return (
         <div className="text-center p-10">
           <h2 className="text-2xl font-bold">مرحباً بك!</h2>
@@ -176,6 +181,14 @@ export default function CafeAccountingSystem() {
         return isManager || isOperationalManager ? null : <Branches readOnly={readOnly || isManager} />;
       case 'users':
         return isManager || readOnly || isOperationalManager ? null : <UsersManagement branches={branches} />;
+      case 'capital':
+        return <Capital readOnly={readOnly || isManager || isOperationalManager} />;
+      case 'partners':
+        return <Partners readOnly={readOnly || isManager || isOperationalManager} />;
+      case 'taxes':
+        return <Taxes readOnly={readOnly || isManager || isOperationalManager} />;
+      case 'project_cost':
+        return <ProjectCost readOnly={readOnly || isManager || isOperationalManager} />;
       default:
         return <Dashboard branchId={selectedBranchId!} />;
     }
@@ -202,7 +215,7 @@ export default function CafeAccountingSystem() {
           activePage={activePage}
           setActivePage={setActivePage}
         />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background p-4 md:p-6">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background p-4 md:p-6 lg:p-8">
           {renderPage()}
         </main>
       </div>

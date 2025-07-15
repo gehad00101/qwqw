@@ -11,7 +11,7 @@ import type { UserProfile, UserRole } from "@/app/page";
 import { auth } from "@/lib/firebase";
 import { SidebarNav } from "./sidebar-nav";
 
-type Page = 'dashboard' | 'sales' | 'expenses' | 'inventory' | 'reports' | 'employees' | 'bank' | 'branches' | 'users';
+type Page = 'dashboard' | 'sales' | 'expenses' | 'inventory' | 'reports' | 'employees' | 'bank' | 'branches' | 'users' | 'capital' | 'partners' | 'taxes' | 'project_cost';
 
 interface HeaderProps {
   branches: Branch[];
@@ -40,6 +40,9 @@ export function Header({ branches, selectedBranchId, onBranchChange, userProfile
     setActivePage(page);
     setSheetOpen(false); // Close sheet on navigation
   }
+
+  const showBranchSelector = !['capital', 'partners', 'taxes', 'project_cost'].includes(activePage);
+
 
   return (
     <header className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
@@ -70,19 +73,21 @@ export function Header({ branches, selectedBranchId, onBranchChange, userProfile
         </h1>
       </div>
       <div className="flex items-center gap-2 md:gap-4">
-        <div className="flex items-center gap-2">
-            <GitBranch className="h-5 w-5 text-muted-foreground" />
-            <Select onValueChange={onBranchChange} value={selectedBranchId || ''} disabled={userProfile.role === 'manager'}>
-                <SelectTrigger className="w-[150px] md:w-[180px]">
-                    <SelectValue placeholder="اختر فرعًا..." />
-                </SelectTrigger>
-                <SelectContent>
-                    {branches.map(branch => (
-                        <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
-        </div>
+        {showBranchSelector && (
+          <div className="flex items-center gap-2">
+              <GitBranch className="h-5 w-5 text-muted-foreground" />
+              <Select onValueChange={onBranchChange} value={selectedBranchId || ''} disabled={userProfile.role === 'manager'}>
+                  <SelectTrigger className="w-[150px] md:w-[180px]">
+                      <SelectValue placeholder="اختر فرعًا..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                      {branches.map(branch => (
+                          <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
+                      ))}
+                  </SelectContent>
+              </Select>
+          </div>
+        )}
         <div className="hidden md:block text-sm text-right">
             <div className="font-bold">{userProfile.email}</div>
             <div className="text-muted-foreground">{roleLabels[userProfile.role]}</div>
