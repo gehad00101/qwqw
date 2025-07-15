@@ -37,6 +37,25 @@ export async function createUser(input: CreateUserInput): Promise<CreateUserOutp
   return createUserFlow(input);
 }
 
+// Helper function to initialize Firebase Admin SDK
+function initializeFirebaseAdmin(): App {
+    if (getApps().length > 0) {
+        return getApp();
+    }
+    const serviceAccount = process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT;
+    if (!serviceAccount) {
+        throw new Error("FIREBASE_ADMIN_SERVICE_ACCOUNT environment variable is not set.");
+    }
+    try {
+        const serviceAccountJson = JSON.parse(serviceAccount);
+        return initializeApp({
+            credential: cert(serviceAccountJson),
+        });
+    } catch (e: any) {
+        throw new Error(`Failed to parse FIREBASE_ADMIN_SERVICE_ACCOUNT: ${e.message}`);
+    }
+}
+
 // Define the Genkit flow
 const createUserFlow = ai.defineFlow(
   {
@@ -45,20 +64,6 @@ const createUserFlow = ai.defineFlow(
     outputSchema: CreateUserOutputSchema,
   },
   async (input) => {
-    // Initialize Firebase Admin SDK inside the flow
-    function initializeFirebaseAdmin(): App {
-        if (getApps().length > 0) {
-            return getApp();
-        }
-        const serviceAccount = process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT;
-        if (!serviceAccount) {
-            throw new Error("FIREBASE_ADMIN_SERVICE_ACCOUNT environment variable is not set.");
-        }
-        return initializeApp({
-            credential: cert(JSON.parse(serviceAccount)),
-        });
-    }
-
     try {
       const adminApp = initializeFirebaseAdmin();
       const adminAuth = getAuth(adminApp);
@@ -77,7 +82,7 @@ const createUserFlow = ai.defineFlow(
         uid: userRecord.uid,
         email: input.email,
         role: input.role,
-        ...(input.role === 'manager' && { branchId: input.branchId }),
+        ...(input.role === 'manager' && input.branchId && { branchId: input.branchId }),
       };
 
       await adminDb.collection('users').doc(userRecord.uid).set(userProfile);

@@ -188,6 +188,11 @@ export function UsersManagement({ branches }: UsersManagementProps) {
                 <div>
                   <p className="font-semibold text-primary">{user.email}</p>
                   <p className="text-sm text-muted-foreground">{roleLabels[user.role]}</p>
+                   {user.role === 'manager' && user.branchId && (
+                     <p className="text-xs text-muted-foreground">
+                        الفرع: {branches.find(b => b.id === user.branchId)?.name || user.branchId}
+                    </p>
+                   )}
                 </div>
               </div>
             ))}

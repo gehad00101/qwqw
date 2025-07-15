@@ -54,8 +54,14 @@ export default function CafeAccountingSystem() {
           }
         } else {
           // Handle case where user exists in Auth but not in Firestore
-          setUserProfile(null); 
-          toast({ title: "خطأ في الحساب", description: "لم يتم العثور على ملف تعريف المستخدم.", variant: "destructive"});
+          // This could be the owner's first sign-in. Let's create their profile.
+          const ownerProfile: UserProfile = {
+            uid: currentUser.uid,
+            email: currentUser.email!,
+            role: 'owner'
+          };
+          await setDoc(userDocRef, ownerProfile);
+          setUserProfile(ownerProfile);
         }
       } else {
         setUserProfile(null);

@@ -32,7 +32,7 @@ const navItems = [
   { id: 'employees', label: 'الموظفين', icon: Users, roles: ['owner', 'accountant', 'manager'] },
   { id: 'bank', label: 'البنك', icon: Landmark, roles: ['owner', 'accountant', 'manager'] },
   { id: 'reports', label: 'التقارير', icon: BarChart, roles: ['owner', 'accountant'] },
-  { id: 'branches', label: 'الفروع', icon: GitBranch, roles: ['owner', 'accountant'] },
+  { id: 'branches', label: 'الفروع', icon: GitBranch, roles: ['owner'] },
   { id: 'users', label: 'إدارة المستخدمين', icon: ShieldCheck, roles: ['owner'] },
 ];
 
