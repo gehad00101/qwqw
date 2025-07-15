@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { createUser } from "@/ai/flows/create-user";
 import { type Branch } from "@/components/branches";
 import type { UserRole } from "@/app/page";
-import { Coffee } from "lucide-react";
+import { Coffee, LogIn } from "lucide-react";
 
 interface LoginProps {
     branches: Branch[];
@@ -110,55 +110,54 @@ export function Login({ branches }: LoginProps) {
 
 
   const formAction = isRegistering ? handleRegister : handleLogin;
-  const title = isRegistering ? "إنشاء حساب جديد" : "تسجيل الدخول";
+  const title = isRegistering ? "إنشاء حساب جديد" : "مرحباً بعودتك";
+  const description = isRegistering ? "املأ بياناتك لإنشاء حساب جديد في النظام." : "أدخل بياناتك للوصول إلى لوحة التحكم.";
   const buttonText = isRegistering ? "إنشاء الحساب" : "تسجيل الدخول";
-  const toggleText = isRegistering ? "لديك حساب بالفعل؟ سجل الدخول" : "ليس لديك حساب؟ أنشئ واحدًا";
+  const toggleText = isRegistering ? "لديك حساب؟ سجل الدخول" : "ليس لديك حساب؟ أنشئ واحداً";
 
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 p-4">
-      <Card className="w-full max-w-md p-8 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-800">
-        <CardHeader className="p-0 mb-8 text-center">
+      <Card className="w-full max-w-md rounded-2xl shadow-xl border-gray-200 dark:border-gray-800">
+        <CardHeader className="text-center p-6">
             <div className="mx-auto bg-primary/10 text-primary p-3 rounded-full mb-4 w-fit">
                <Coffee className="h-8 w-8" />
             </div>
-            <CardTitle className="text-3xl font-bold text-gray-800 dark:text-gray-100">{title}</CardTitle>
-             <CardDescription className="pt-2">
-                {isRegistering ? "أدخل بياناتك لإنشاء حساب جديد في النظام." : "أدخل بياناتك للوصول إلى نظام المحاسبة."}
+            <CardTitle className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-50">{title}</CardTitle>
+             <CardDescription className="pt-2 text-base">
+                {description}
             </CardDescription>
         </CardHeader>
-        <CardContent className="p-0">
-          <form onSubmit={formAction} className="space-y-6">
-            <div>
-              <Label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">البريد الإلكتروني</Label>
+        <CardContent className="p-6 pt-0">
+          <form onSubmit={formAction} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">البريد الإلكتروني</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="أدخل بريدك الإلكتروني"
+                placeholder="email@example.com"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
-                className="mt-1 block w-full px-4 py-2 border-gray-300 rounded-lg shadow-sm focus:ring-primary focus:border-primary transition duration-200"
               />
             </div>
-            <div>
-              <Label htmlFor="password"  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">كلمة المرور</Label>
+            <div className="space-y-2">
+              <Label htmlFor="password">كلمة المرور</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="أدخل كلمة المرور"
+                placeholder="••••••••"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
-                className="mt-1 block w-full px-4 py-2 border-gray-300 rounded-lg shadow-sm focus:ring-primary focus:border-primary transition duration-200"
               />
             </div>
             {isRegistering && (
                 <>
-                    <div>
-                        <Label htmlFor="role" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">الدور</Label>
+                    <div className="space-y-2">
+                        <Label htmlFor="role">الدور</Label>
                         <Select onValueChange={(value) => setRole(value as UserRole)} value={role} disabled={isLoading}>
                             <SelectTrigger id="role">
                                 <SelectValue placeholder="اختر دور المستخدم" />
@@ -172,8 +171,8 @@ export function Login({ branches }: LoginProps) {
                         </Select>
                     </div>
                     {role === 'manager' && (
-                        <div>
-                             <Label htmlFor="branch" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">الفرع</Label>
+                        <div className="space-y-2">
+                             <Label htmlFor="branch">الفرع</Label>
                             <Select onValueChange={setBranchId} value={branchId} disabled={isLoading}>
                                 <SelectTrigger id="branch">
                                     <SelectValue placeholder="اختر فرع المدير" />
@@ -188,12 +187,13 @@ export function Login({ branches }: LoginProps) {
                     )}
                 </>
             )}
-             <Button className="w-full flex justify-center py-3 px-4 rounded-lg shadow-sm text-lg font-semibold transition duration-200 transform hover:scale-105" type="submit" disabled={isLoading}>
+             <Button className="w-full text-lg font-semibold" size="lg" type="submit" disabled={isLoading}>
               {isLoading ? "جاري..." : buttonText}
+              {!isLoading && <LogIn className="mr-2 h-5 w-5"/>}
             </Button>
           </form>
            <div className="mt-6 text-center">
-            <Button variant="link" onClick={() => setIsRegistering(!isRegistering)}>
+            <Button variant="link" onClick={() => setIsRegistering(!isRegistering)} className="text-primary">
               {toggleText}
             </Button>
           </div>
@@ -202,5 +202,3 @@ export function Login({ branches }: LoginProps) {
     </div>
   );
 }
-
-    
