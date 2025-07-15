@@ -10,8 +10,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Noto Sans Arabic', 'sans-serif'],
-        headline: ['Noto Sans Arabic', 'sans-serif'],
+        body: ['Cairo', 'sans-serif'],
+        headline: ['Cairo', 'sans-serif'],
         code: ['Source Code Pro', 'monospace'],
       },
       colors: {
