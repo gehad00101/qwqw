@@ -8,8 +8,9 @@ import { Sales } from '@/components/sales';
 import { Expenses } from '@/components/expenses';
 import { Inventory } from '@/components/inventory';
 import { Reports } from '@/components/reports';
+import { Employees } from '@/components/employees';
 
-type Page = 'dashboard' | 'sales' | 'expenses' | 'inventory' | 'reports';
+type Page = 'dashboard' | 'sales' | 'expenses' | 'inventory' | 'reports' | 'employees';
 
 export default function CafeAccountingSystem() {
   const [activePage, setActivePage] = useState<Page>('dashboard');
@@ -26,6 +27,8 @@ export default function CafeAccountingSystem() {
         return <Inventory />;
       case 'reports':
         return <Reports />;
+      case 'employees':
+        return <Employees />;
       default:
         return <Dashboard />;
     }
