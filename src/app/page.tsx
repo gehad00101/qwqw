@@ -199,6 +199,8 @@ export default function CafeAccountingSystem() {
           selectedBranchId={selectedBranchId} 
           onBranchChange={setSelectedBranchId}
           userProfile={userProfile}
+          activePage={activePage}
+          setActivePage={setActivePage}
         />
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-900 p-6">
           {renderPage()}
