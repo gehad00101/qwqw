@@ -7,6 +7,18 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase";
 import { collection, addDoc, query, onSnapshot, serverTimestamp, orderBy, deleteDoc, doc, setDoc } from "firebase/firestore";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
 
 export interface Branch {
   id: string;
@@ -86,7 +98,6 @@ export function Branches() {
   };
   
   const handleDeleteBranch = async (branchId: string) => {
-    // Basic check to prevent deleting the last branch, more complex logic might be needed
     if (branches.length <= 1) {
         toast({
             title: "لا يمكن الحذف",
@@ -96,22 +107,20 @@ export function Branches() {
         return;
     }
     
-    if (confirm(`هل أنت متأكد من حذف هذا الفرع؟ سيتم حذف جميع البيانات المرتبطة به بشكل دائم (هذه الميزة غير مكتملة بعد).`)) {
-      if (!db) return;
-      try {
-        await deleteDoc(doc(db, "branches", branchId));
-         toast({
-          title: "نجاح",
-          description: "تم حذف الفرع بنجاح.",
-        });
-      } catch (error) {
-         console.error("Error deleting branch: ", error);
-        toast({
-          title: "خطأ",
-          description: "فشل في حذف الفرع.",
-          variant: "destructive",
-        });
-      }
+    if (!db) return;
+    try {
+      await deleteDoc(doc(db, "branches", branchId));
+       toast({
+        title: "نجاح",
+        description: "تم حذف الفرع بنجاح.",
+      });
+    } catch (error) {
+       console.error("Error deleting branch: ", error);
+      toast({
+        title: "خطأ",
+        description: "فشل في حذف الفرع.",
+        variant: "destructive",
+      });
     }
   }
 
@@ -156,7 +165,25 @@ export function Branches() {
                     <p className="font-semibold text-primary">{branch.name}</p>
                     <p className="text-xs text-muted-foreground">ID: {branch.id}</p>
                   </div>
-                   <Button variant="destructive" size="sm" onClick={() => handleDeleteBranch(branch.id)}>حذف</Button>
+                   <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" size="sm">حذف</Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>هل أنت متأكد تمامًا؟</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            هذا الإجراء لا يمكن التراجع عنه. سيؤدي هذا إلى حذف الفرع وجميع البيانات المرتبطة به (مثل المبيعات والمصروفات والمخزون) بشكل دائم.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDeleteBranch(branch.id)} className="bg-destructive hover:bg-destructive/90">
+                            نعم، حذف الفرع
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                 </div>
               ))
             )}
