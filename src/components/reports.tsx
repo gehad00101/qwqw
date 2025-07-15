@@ -12,10 +12,11 @@ import { collection, query, onSnapshot, orderBy, where, doc } from "firebase/fir
 import { useToast } from "@/hooks/use-toast";
 import { Calendar as CalendarIcon, PieChart, LineChart as LineChartIcon } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Pie, Cell, ResponsiveContainer, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, Bar, LineChart, PieChart as RechartsPieChart } from 'recharts';
+import { Pie, Cell, ResponsiveContainer, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, Bar, LineChart as RechartsLineChart, PieChart as RechartsPieChart } from 'recharts';
 import { format, subDays } from "date-fns";
 import { ar } from "date-fns/locale";
 import type { DateRange } from "react-day-picker";
+import { FinancialAssistant } from "./financial-assistant";
 
 interface Transaction {
   id: string;
@@ -91,10 +92,13 @@ export function Reports({ branchId }: ReportsProps) {
     if (!dateRange?.from) {
         return allTransactions;
     }
-    const fromDate = dateRange.from.toISOString().split('T')[0];
-    // If to date is not selected, use from date as to date
-    const toDate = (dateRange.to || dateRange.from).toISOString().split('T')[0];
-    return allTransactions.filter(tx => tx.date >= fromDate && tx.date <= toDate);
+    const fromDate = dateRange.from;
+    const toDate = dateRange.to || fromDate; // Use fromDate if to is not selected
+    
+    return allTransactions.filter(tx => {
+        const txDate = new Date(tx.date);
+        return txDate >= fromDate && txDate <= toDate;
+    });
   }, [allTransactions, dateRange]);
   
   const { totalSales, totalExpenses, netProfit, monthlyData, expenseCategoryData } = useMemo(() => {
@@ -107,7 +111,7 @@ export function Reports({ branchId }: ReportsProps) {
 
     const monthlyDataMap = new Map<string, { sales: number; expenses: number }>();
     filteredTransactions.forEach(tx => {
-        const month = tx.date.substring(0, 7); // "YYYY-MM"
+        const month = format(new Date(tx.date), "yyyy-MM");
         const current = monthlyDataMap.get(month) || { sales: 0, expenses: 0 };
         if (tx.type === 'sale') {
             current.sales += tx.amount;
@@ -136,182 +140,187 @@ export function Reports({ branchId }: ReportsProps) {
   const sortedTransactions = filteredTransactions.slice(0, 10);
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-               <div>
-                  <CardTitle>لوحة التقارير</CardTitle>
-                  <CardDescription>نظرة شاملة على أداء المقهى المالي للفرع المحدد.</CardDescription>
-               </div>
-               <div className="grid gap-2">
-                    <Popover>
-                        <PopoverTrigger asChild>
-                        <Button
-                            id="date"
-                            variant={"outline"}
-                            className="w-[300px] justify-start text-left font-normal"
-                        >
-                            <CalendarIcon className="ml-2 h-4 w-4" />
-                            {dateRange?.from ? (
-                            dateRange.to ? (
-                                <>
-                                {format(dateRange.from, "LLL dd, y", {locale: ar})} -{" "}
-                                {format(dateRange.to, "LLL dd, y", {locale: ar})}
-                                </>
-                            ) : (
-                                format(dateRange.from, "LLL dd, y", {locale: ar})
-                            )
-                            ) : (
-                            <span>اختر تاريخًا</span>
-                            )}
-                        </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="end">
-                        <Calendar
-                            initialFocus
-                            mode="range"
-                            defaultMonth={dateRange?.from}
-                            selected={dateRange}
-                            onSelect={setDateRange}
-                            numberOfMonths={2}
-                            locale={ar}
-                        />
-                        </PopoverContent>
-                    </Popover>
+    <div className="grid lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2 space-y-6">
+        <Card>
+            <CardHeader>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <CardTitle>لوحة التقارير</CardTitle>
+                    <CardDescription>نظرة شاملة على أداء المقهى المالي للفرع المحدد.</CardDescription>
                 </div>
-            </div>
-        </CardHeader>
-      </Card>
-      
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-         <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">إجمالي الإيرادات</CardTitle>
-                <span className="text-green-500">▲</span>
+                <div className="grid gap-2">
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <Button
+                                id="date"
+                                variant={"outline"}
+                                className="w-[300px] justify-start text-left font-normal"
+                            >
+                                <CalendarIcon className="ml-2 h-4 w-4" />
+                                {dateRange?.from ? (
+                                dateRange.to ? (
+                                    <>
+                                    {format(dateRange.from, "PPP", {locale: ar})} -{" "}
+                                    {format(dateRange.to, "PPP", {locale: ar})}
+                                    </>
+                                ) : (
+                                    format(dateRange.from, "PPP", {locale: ar})
+                                )
+                                ) : (
+                                <span>اختر تاريخًا</span>
+                                )}
+                            </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="end">
+                            <Calendar
+                                initialFocus
+                                mode="range"
+                                defaultMonth={dateRange?.from}
+                                selected={dateRange}
+                                onSelect={setDateRange}
+                                numberOfMonths={2}
+                                locale={ar}
+                            />
+                            </PopoverContent>
+                        </Popover>
+                    </div>
+                </div>
             </CardHeader>
-            <CardContent>
-                <div className="text-2xl font-bold">{totalSales.toFixed(2)} ريال</div>
-                 <p className="text-xs text-muted-foreground">خلال الفترة المحددة</p>
-            </CardContent>
-         </Card>
-         <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">إجمالي المصروفات</CardTitle>
-                <span className="text-red-500">▼</span>
-            </CardHeader>
-            <CardContent>
-                <div className="text-2xl font-bold">{totalExpenses.toFixed(2)} ريال</div>
-                 <p className="text-xs text-muted-foreground">خلال الفترة المحددة</p>
-            </CardContent>
-         </Card>
-         <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">صافي الربح</CardTitle>
-                <span className={netProfit >= 0 ? "text-green-500" : "text-red-500"}>=</span>
-            </CardHeader>
-            <CardContent>
-                <div className={`text-2xl font-bold ${netProfit >= 0 ? 'text-green-500' : 'text-red-500'}`}>{netProfit.toFixed(2)} ريال</div>
-                 <p className="text-xs text-muted-foreground">خلال الفترة المحددة</p>
-            </CardContent>
-         </Card>
-         <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">رصيد البنك (الحالي)</CardTitle>
-                <span className="text-blue-500">$</span>
-            </CardHeader>
-            <CardContent>
-                <div className="text-2xl font-bold">{bankBalance.toFixed(2)} ريال</div>
-                <p className="text-xs text-muted-foreground">الرصيد الكلي بغض النظر عن التاريخ</p>
-            </CardContent>
-         </Card>
-      </div>
+        </Card>
+        
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">إجمالي الإيرادات</CardTitle>
+                    <span className="text-green-500">▲</span>
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{totalSales.toFixed(2)} ريال</div>
+                    <p className="text-xs text-muted-foreground">خلال الفترة المحددة</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">إجمالي المصروفات</CardTitle>
+                    <span className="text-red-500">▼</span>
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{totalExpenses.toFixed(2)} ريال</div>
+                    <p className="text-xs text-muted-foreground">خلال الفترة المحددة</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">صافي الربح</CardTitle>
+                    <span className={netProfit >= 0 ? "text-green-500" : "text-red-500"}>=</span>
+                </CardHeader>
+                <CardContent>
+                    <div className={`text-2xl font-bold ${netProfit >= 0 ? 'text-green-500' : 'text-red-500'}`}>{netProfit.toFixed(2)} ريال</div>
+                    <p className="text-xs text-muted-foreground">خلال الفترة المحددة</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">رصيد البنك (الحالي)</CardTitle>
+                    <span className="text-blue-500">$</span>
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{bankBalance.toFixed(2)} ريال</div>
+                    <p className="text-xs text-muted-foreground">الرصيد الكلي بغض النظر عن التاريخ</p>
+                </CardContent>
+            </Card>
+        </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2">
+            <Card>
+                <CardHeader>
+                    <CardTitle>الأداء الشهري</CardTitle>
+                    <CardDescription>مقارنة بين المبيعات والمصروفات على مدار الأشهر في الفترة المحددة.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ChartContainer config={{}} className="h-[250px] w-full">
+                        <ResponsiveContainer>
+                            <RechartsLineChart data={monthlyData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="name" />
+                                <YAxis />
+                                <RechartsTooltip content={<ChartTooltipContent />} />
+                                <Legend />
+                                <Line type="monotone" dataKey="المبيعات" stroke="#22c55e" activeDot={{ r: 8 }} />
+                                <Line type="monotone" dataKey="المصروفات" stroke="#ef4444" />
+                            </RechartsLineChart>
+                        </ResponsiveContainer>
+                    </ChartContainer>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>تحليل المصروفات</CardTitle>
+                    <CardDescription>توزيع المصروفات حسب الفئة في الفترة المحددة.</CardDescription>
+                </CardHeader>
+                <CardContent className="flex justify-center">
+                    <ChartContainer config={{}} className="h-[250px] w-full">
+                        <ResponsiveContainer>
+                            <RechartsPieChart>
+                                <RechartsTooltip content={<ChartTooltipContent nameKey="name" />} />
+                                <Legend />
+                                <Pie data={expenseCategoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} fill="#8884d8" label>
+                                    {expenseCategoryData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    ))}
+                                </Pie>
+                            </RechartsPieChart>
+                        </ResponsiveContainer>
+                    </ChartContainer>
+                </CardContent>
+            </Card>
+        </div>
+        
         <Card>
             <CardHeader>
-                <CardTitle>الأداء الشهري</CardTitle>
-                <CardDescription>مقارنة بين المبيعات والمصروفات على مدار الأشهر في الفترة المحددة.</CardDescription>
+                <CardTitle>أحدث المعاملات</CardTitle>
+                <CardDescription>قائمة بآخر 10 معاملات مالية مسجلة ضمن الفترة المحددة.</CardDescription>
             </CardHeader>
             <CardContent>
-                <ChartContainer config={{}} className="h-[250px] w-full">
-                    <ResponsiveContainer>
-                        <LineChart data={monthlyData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" />
-                            <YAxis />
-                            <RechartsTooltip content={<ChartTooltipContent />} />
-                            <Legend />
-                            <Line type="monotone" dataKey="المبيعات" stroke="#22c55e" activeDot={{ r: 8 }} />
-                            <Line type="monotone" dataKey="المصروفات" stroke="#ef4444" />
-                        </LineChart>
-                    </ResponsiveContainer>
-                </ChartContainer>
-            </CardContent>
-        </Card>
-        <Card>
-            <CardHeader>
-                <CardTitle>تحليل المصروفات</CardTitle>
-                <CardDescription>توزيع المصروفات حسب الفئة في الفترة المحددة.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex justify-center">
-                 <ChartContainer config={{}} className="h-[250px] w-full">
-                     <ResponsiveContainer>
-                        <RechartsPieChart>
-                            <RechartsTooltip content={<ChartTooltipContent nameKey="name" />} />
-                            <Legend />
-                            <Pie data={expenseCategoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} fill="#8884d8" label>
-                                {expenseCategoryData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                ))}
-                            </Pie>
-                        </RechartsPieChart>
-                     </ResponsiveContainer>
-                 </ChartContainer>
+            <Table>
+                <TableHeader>
+                <TableRow>
+                    <TableHead>النوع</TableHead>
+                    <TableHead>التاريخ</TableHead>
+                    <TableHead>الفئة/الوصف</TableHead>
+                    <TableHead className="text-left">المبلغ</TableHead>
+                </TableRow>
+                </TableHeader>
+                <TableBody>
+                {sortedTransactions.length === 0 ? (
+                    <TableRow>
+                    <TableCell colSpan={4} className="text-center h-24">لا توجد معاملات مسجلة في هذه الفترة.</TableCell>
+                    </TableRow>
+                ) : (
+                    sortedTransactions.map((tx) => (
+                    <TableRow key={tx.id}>
+                        <TableCell>
+                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${tx.type === 'sale' ? 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200'}`}>
+                            {tx.type === 'sale' ? 'مبيعات' : 'مصروفات'}
+                        </span>
+                        </TableCell>
+                        <TableCell>{tx.date}</TableCell>
+                        <TableCell className="max-w-[200px] truncate">{tx.type === 'expense' ? tx.category : tx.description || '-'}</TableCell>
+                        <TableCell className={`text-left font-mono ${tx.type === 'sale' ? 'text-green-600' : 'text-red-600'}`}>
+                        {tx.type === 'sale' ? '+' : '-'} {tx.amount.toFixed(2)} ريال
+                        </TableCell>
+                    </TableRow>
+                    ))
+                )}
+                </TableBody>
+            </Table>
             </CardContent>
         </Card>
       </div>
-      
-      <Card>
-        <CardHeader>
-            <CardTitle>أحدث المعاملات</CardTitle>
-            <CardDescription>قائمة بآخر 10 معاملات مالية مسجلة ضمن الفترة المحددة.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>النوع</TableHead>
-                <TableHead>التاريخ</TableHead>
-                <TableHead>الفئة/الوصف</TableHead>
-                <TableHead className="text-left">المبلغ</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedTransactions.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center h-24">لا توجد معاملات مسجلة في هذه الفترة.</TableCell>
-                </TableRow>
-              ) : (
-                sortedTransactions.map((tx) => (
-                  <TableRow key={tx.id}>
-                    <TableCell>
-                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${tx.type === 'sale' ? 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200'}`}>
-                        {tx.type === 'sale' ? 'مبيعات' : 'مصروفات'}
-                      </span>
-                    </TableCell>
-                    <TableCell>{tx.date}</TableCell>
-                    <TableCell className="max-w-[200px] truncate">{tx.type === 'expense' ? tx.category : tx.description || '-'}</TableCell>
-                    <TableCell className={`text-left font-mono ${tx.type === 'sale' ? 'text-green-600' : 'text-red-600'}`}>
-                      {tx.type === 'sale' ? '+' : '-'} {tx.amount.toFixed(2)} ريال
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-    </Card>
+      <div className="lg:col-span-1">
+        <FinancialAssistant branchId={branchId} />
+      </div>
     </div>
   );
 }
