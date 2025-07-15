@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -88,7 +89,7 @@ export function UsersManagement({ branches }: UsersManagementProps) {
   }
 
   return (
-    <div className="grid md:grid-cols-2 gap-6">
+    <div className="grid lg:grid-cols-2 gap-6">
       <Card>
         <CardHeader>
           <CardTitle>إنشاء مستخدم جديد</CardTitle>

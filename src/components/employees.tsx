@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -117,7 +118,7 @@ export function Employees({ branchId, readOnly }: EmployeesProps) {
   }
 
   return (
-    <div className="grid md:grid-cols-2 gap-6">
+    <div className="grid lg:grid-cols-2 gap-6">
       <Card>
         <CardHeader>
           <CardTitle>إضافة موظف جديد</CardTitle>

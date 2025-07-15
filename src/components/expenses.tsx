@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -109,7 +110,7 @@ export function Expenses({ branchId, readOnly }: ExpensesProps) {
   };
 
   return (
-    <div className="grid md:grid-cols-2 gap-6">
+    <div className="grid lg:grid-cols-2 gap-6">
       <Card>
         <CardHeader>
           <CardTitle>إدخال مصروف جديد</CardTitle>
