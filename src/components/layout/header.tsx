@@ -23,7 +23,8 @@ export function Header({ branches, selectedBranchId, onBranchChange, userProfile
   const roleLabels: Record<string, string> = {
       owner: 'المالك',
       accountant: 'محاسب',
-      manager: 'مدير فرع'
+      manager: 'مدير فرع',
+      operational_manager: 'مدير تشغيلي'
   }
 
   return (

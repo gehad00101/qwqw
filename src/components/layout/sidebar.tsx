@@ -13,6 +13,7 @@ import {
   Landmark,
   GitBranch,
   ShieldCheck,
+  Briefcase,
 } from "lucide-react";
 import type { UserRole } from "@/app/page";
 
@@ -25,13 +26,13 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { id: 'dashboard', label: 'الرئيسية', icon: LayoutDashboard, roles: ['owner', 'accountant', 'manager'] },
-  { id: 'sales', label: 'المبيعات', icon: TrendingUp, roles: ['owner', 'accountant', 'manager'] },
-  { id: 'expenses', label: 'المصروفات', icon: TrendingDown, roles: ['owner', 'accountant', 'manager'] },
-  { id: 'inventory', label: 'المخزون', icon: Warehouse, roles: ['owner', 'accountant', 'manager'] },
-  { id: 'employees', label: 'الموظفين', icon: Users, roles: ['owner', 'accountant', 'manager'] },
-  { id: 'bank', label: 'البنك', icon: Landmark, roles: ['owner', 'accountant', 'manager'] },
-  { id: 'reports', label: 'التقارير', icon: BarChart, roles: ['owner', 'accountant'] },
+  { id: 'dashboard', label: 'الرئيسية', icon: LayoutDashboard, roles: ['owner', 'accountant', 'manager', 'operational_manager'] },
+  { id: 'sales', label: 'المبيعات', icon: TrendingUp, roles: ['owner', 'accountant', 'manager', 'operational_manager'] },
+  { id: 'expenses', label: 'المصروفات', icon: TrendingDown, roles: ['owner', 'accountant', 'manager', 'operational_manager'] },
+  { id: 'inventory', label: 'المخزون', icon: Warehouse, roles: ['owner', 'accountant', 'manager', 'operational_manager'] },
+  { id: 'employees', label: 'الموظفين', icon: Users, roles: ['owner', 'accountant', 'manager', 'operational_manager'] },
+  { id: 'bank', label: 'البنك', icon: Landmark, roles: ['owner', 'accountant', 'manager', 'operational_manager'] },
+  { id: 'reports', label: 'التقارير', icon: BarChart, roles: ['owner', 'accountant', 'operational_manager'] },
   { id: 'branches', label: 'الفروع', icon: GitBranch, roles: ['owner'] },
   { id: 'users', label: 'إدارة المستخدمين', icon: ShieldCheck, roles: ['owner'] },
 ];

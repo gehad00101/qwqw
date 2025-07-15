@@ -17,7 +17,7 @@ import { createUserFlow } from './create-user-flow';
 export const CreateUserInputSchema = z.object({
   email: z.string().email().describe("The user's email address."),
   password: z.string().min(6).describe("The user's password (at least 6 characters)."),
-  role: z.enum(['accountant', 'manager']).describe("The role of the user."),
+  role: z.enum(['accountant', 'manager', 'owner', 'operational_manager']).describe("The role of the user."),
   branchId: z.string().optional().describe("The branch ID, required if the role is 'manager'."),
 });
 export type CreateUserInput = z.infer<typeof CreateUserInputSchema>;
@@ -35,7 +35,6 @@ export async function createUser(input: CreateUserInput): Promise<CreateUserOutp
   // When a user registers through the public form, default their role.
   const userData = {
       ...input,
-      role: input.role || 'accountant', // Default to 'accountant'
   };
   return createUserFlow(userData);
 }

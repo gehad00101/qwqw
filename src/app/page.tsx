@@ -20,7 +20,7 @@ import { Login } from "@/components/login";
 
 type Page = 'dashboard' | 'sales' | 'expenses' | 'inventory' | 'reports' | 'employees' | 'bank' | 'branches' | 'users';
 
-export type UserRole = 'owner' | 'accountant' | 'manager';
+export type UserRole = 'owner' | 'accountant' | 'manager' | 'operational_manager';
 
 export interface UserProfile {
   uid: string;
@@ -54,7 +54,7 @@ export default function CafeAccountingSystem() {
           }
         } else {
           // This is a first sign-in. Check if it's the designated owner.
-          if (currentUser.email === 'n9212993@gmail.com') {
+          if (currentUser.email === 'n9212993@gmail.com' && !userDocSnap.exists()) {
               const ownerProfile: UserProfile = {
                 uid: currentUser.uid,
                 email: currentUser.email!,
@@ -154,6 +154,7 @@ export default function CafeAccountingSystem() {
     
     const readOnly = userProfile?.role === 'accountant';
     const isManager = userProfile?.role === 'manager';
+    const isOperationalManager = userProfile?.role === 'operational_manager';
 
     switch (activePage) {
       case 'dashboard':
@@ -171,9 +172,9 @@ export default function CafeAccountingSystem() {
       case 'bank':
         return <Bank branchId={selectedBranchId!} readOnly={readOnly} />;
       case 'branches':
-        return isManager ? null : <Branches readOnly={readOnly || isManager} />;
+        return isManager || isOperationalManager ? null : <Branches readOnly={readOnly || isManager} />;
       case 'users':
-        return isManager || readOnly ? null : <UsersManagement branches={branches} />;
+        return isManager || readOnly || isOperationalManager ? null : <UsersManagement branches={branches} />;
       default:
         return <Dashboard branchId={selectedBranchId!} />;
     }
@@ -184,7 +185,7 @@ export default function CafeAccountingSystem() {
   }
 
   if (!user || !userProfile) {
-      return <Login />;
+      return <Login branches={branches}/>;
   }
 
   return (

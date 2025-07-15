@@ -7,16 +7,26 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { createUser } from "@/ai/flows/create-user";
-import { type CreateUserInput } from "@/ai/flows/create-user";
+import { type Branch } from "@/components/branches";
+import type { UserRole } from "@/app/page";
 
-export function Login() {
+interface LoginProps {
+    branches: Branch[];
+}
+
+
+export function Login({ branches }: LoginProps) {
   const [email, setEmail] = useState("n9212993@gmail.com");
   const [password, setPassword] = useState("123456");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const [isRegistering, setIsRegistering] = useState(false);
+  const [role, setRole] = useState<UserRole | ''>('');
+  const [branchId, setBranchId] = useState('');
+
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,18 +63,33 @@ export function Login() {
         setIsLoading(false);
         return;
     }
+     if (!role) {
+        toast({ title: "خطأ", description: "الرجاء اختيار دور للمستخدم.", variant: "destructive" });
+        setIsLoading(false);
+        return;
+    }
+
+     if (role === 'manager' && !branchId) {
+        toast({ title: "خطأ", description: "الرجاء اختيار فرع لمدير الفرع.", variant: "destructive" });
+        setIsLoading(false);
+        return;
+    }
+
 
     try {
       const result = await createUser({
           email,
           password,
-          role: 'accountant' // Default role for public registration
+          role,
+          ...(role === 'manager' && { branchId }),
       });
        if (result.success) {
            toast({ title: "نجاح", description: "تم إنشاء حسابك بنجاح. يمكنك الآن تسجيل الدخول." });
            setIsRegistering(false); // Switch back to login view
            // Clear password field for security
            setPassword("");
+           setRole("");
+           setBranchId("");
        } else {
            throw new Error(result.error || "فشل إنشاء المستخدم.");
        }
@@ -125,6 +150,39 @@ export function Login() {
                 className="mt-1 block w-full px-4 py-2 border-gray-300 rounded-lg shadow-sm focus:ring-primary focus:border-primary transition duration-200"
               />
             </div>
+            {isRegistering && (
+                <>
+                    <div>
+                        <Label htmlFor="role" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">الدور</Label>
+                        <Select onValueChange={(value) => setRole(value as UserRole)} value={role} disabled={isLoading}>
+                            <SelectTrigger id="role">
+                                <SelectValue placeholder="اختر دور المستخدم" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="owner">المالك</SelectItem>
+                                <SelectItem value="accountant">محاسب</SelectItem>
+                                <SelectItem value="manager">مدير فرع</SelectItem>
+                                <SelectItem value="operational_manager">مدير تشغيلي</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    {role === 'manager' && (
+                        <div>
+                             <Label htmlFor="branch" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">الفرع</Label>
+                            <Select onValueChange={setBranchId} value={branchId} disabled={isLoading}>
+                                <SelectTrigger id="branch">
+                                    <SelectValue placeholder="اختر فرع المدير" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {branches.map(branch => (
+                                        <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+                </>
+            )}
              <Button className="w-full flex justify-center py-3 px-4 rounded-lg shadow-sm text-lg font-semibold transition duration-200 transform hover:scale-105" type="submit" disabled={isLoading}>
               {isLoading ? "جاري..." : buttonText}
             </Button>
