@@ -1,3 +1,80 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { Header } from "@/components/header";
+import { AICodeGenerator } from "@/components/ai-code-generator";
+import { FunctionSearch } from "@/components/function-search";
+import { CodeDisplay } from "@/components/code-display";
+import { SavedSnippets } from "@/components/saved-snippets";
+import { useSavedSnippets, type SavedSnippet } from "@/hooks/use-saved-snippets";
+import { ACCOUNTING_FUNCTIONS, type AccountingFunction } from "@/lib/functions";
+import { Card, CardContent } from "@/components/ui/card";
+import { BookCopy } from "lucide-react";
+
 export default function Home() {
-  return <></>;
+  const [selectedSnippet, setSelectedSnippet] = useState<SavedSnippet | null>(null);
+  const { savedSnippets, addSnippet, removeSnippet, isSnippetSaved, isLoaded } = useSavedSnippets();
+
+  useEffect(() => {
+    if (ACCOUNTING_FUNCTIONS.length > 0) {
+      setSelectedSnippet(ACCOUNTING_FUNCTIONS[0]);
+    }
+  }, []);
+  
+  const handleSnippetSelect = (snippet: SavedSnippet) => {
+    setSelectedSnippet(snippet);
+  };
+
+  const handleSaveToggle = (snippetId: string) => {
+    if (!selectedSnippet) return;
+    if (isSnippetSaved(snippetId)) {
+      removeSnippet(snippetId);
+    } else {
+      addSnippet(selectedSnippet);
+    }
+  };
+
+  const handleSelectSaved = (snippet: SavedSnippet) => {
+      setSelectedSnippet(snippet);
+  }
+
+  return (
+    <div className="flex flex-col min-h-screen bg-background">
+      <Header />
+      <main className="flex-1 p-4 md:p-6 grid gap-6 md:grid-cols-[380px_1fr]">
+        <aside className="flex flex-col gap-6">
+          <AICodeGenerator onCodeGenerated={handleSnippetSelect} />
+          <FunctionSearch onFunctionSelect={handleSnippetSelect} selectedFunctionId={selectedSnippet?.id} />
+          <SavedSnippets 
+            snippets={savedSnippets} 
+            onSelect={handleSelectSaved} 
+            onRemove={removeSnippet}
+            selectedSnippetId={selectedSnippet?.id}
+            isLoaded={isLoaded}
+          />
+        </aside>
+        <div className="flex flex-col">
+            {selectedSnippet ? (
+                <CodeDisplay
+                    key={selectedSnippet.id}
+                    id={selectedSnippet.id}
+                    title={selectedSnippet.name}
+                    description={selectedSnippet.description}
+                    code={selectedSnippet.code}
+                    onSaveToggle={() => handleSaveToggle(selectedSnippet.id)}
+                    isSaved={isSnippetSaved(selectedSnippet.id)}
+                />
+            ) : (
+                <Card className="h-full flex items-center justify-center">
+                    <CardContent className="text-center text-muted-foreground pt-6">
+                        <BookCopy className="mx-auto h-12 w-12 mb-4" />
+                        <h2 className="text-xl font-semibold">Welcome to CodeBooks</h2>
+                        <p>Select a function or generate new code to get started.</p>
+                    </CardContent>
+                </Card>
+            )}
+        </div>
+      </main>
+    </div>
+  );
 }
