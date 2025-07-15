@@ -10,9 +10,10 @@ import {
   BarChart,
   Coffee,
   Users,
+  Landmark,
 } from "lucide-react";
 
-type Page = 'dashboard' | 'sales' | 'expenses' | 'inventory' | 'reports' | 'employees';
+type Page = 'dashboard' | 'sales' | 'expenses' | 'inventory' | 'reports' | 'employees' | 'bank';
 
 interface SidebarProps {
   activePage: Page;
@@ -25,6 +26,7 @@ const navItems = [
   { id: 'expenses', label: 'المصروفات', icon: TrendingDown },
   { id: 'inventory', label: 'المخزون', icon: Warehouse },
   { id: 'employees', label: 'الموظفين', icon: Users },
+  { id: 'bank', label: 'البنك', icon: Landmark },
   { id: 'reports', label: 'التقارير', icon: BarChart },
 ];
 
