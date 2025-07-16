@@ -10,13 +10,16 @@ import { Calendar } from "@/components/ui/calendar";
 import { db } from "@/lib/firebase";
 import { collection, query, onSnapshot, orderBy, where, doc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar as CalendarIcon, PieChart, LineChart as LineChartIcon } from 'lucide-react';
+import { Calendar as CalendarIcon, FileDown, FileType } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Pie, Cell, ResponsiveContainer, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, Bar, LineChart as RechartsLineChart, PieChart as RechartsPieChart } from 'recharts';
+import { Pie, Cell, ResponsiveContainer, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, LineChart as RechartsLineChart, PieChart as RechartsPieChart } from 'recharts';
 import { format, subDays } from "date-fns";
 import { ar } from "date-fns/locale";
 import type { DateRange } from "react-day-picker";
 import { FinancialAssistant } from "./financial-assistant";
+import jsPDF from "jspdf";
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 interface Transaction {
   id: string;
@@ -139,6 +142,80 @@ export function Reports({ branchId }: ReportsProps) {
   
   const sortedTransactions = filteredTransactions.slice(0, 10);
 
+  const handleExportExcel = () => {
+    const wb = XLSX.utils.book_new();
+    
+    // Summary Sheet
+    const summaryData = [
+      ["تقرير ملخص", ""],
+      ["الفترة من", dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : 'N/A'],
+      ["الفترة إلى", dateRange?.to ? format(dateRange.to, "yyyy-MM-dd") : 'N/A'],
+      ["", ""],
+      ["إجمالي الإيرادات", totalSales],
+      ["إجمالي المصروفات", totalExpenses],
+      ["صافي الربح", netProfit],
+      ["رصيد البنك (الحالي)", bankBalance]
+    ];
+    const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+    XLSX.utils.book_append_sheet(wb, wsSummary, "ملخص التقرير");
+
+    // Transactions Sheet
+    const transactionsData = filteredTransactions.map(tx => ({
+      "النوع": tx.type === 'sale' ? 'مبيعات' : 'مصروفات',
+      "التاريخ": tx.date,
+      "الوصف/الفئة": tx.type === 'expense' ? tx.category : tx.description || '-',
+      "المبلغ": tx.amount
+    }));
+    const wsTransactions = XLSX.utils.json_to_sheet(transactionsData);
+    XLSX.utils.book_append_sheet(wb, wsTransactions, "جميع المعاملات");
+
+    XLSX.writeFile(wb, `financial_report_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
+  }
+
+  const handleExportPdf = () => {
+    const doc = new jsPDF();
+
+    // Add Right-to-Left font support
+    doc.addFont('/Cairo-Regular.ttf', 'Cairo', 'normal');
+    doc.setFont('Cairo');
+
+    doc.setRTL(true);
+    doc.text("تقرير مالي", 105, 10, {align: 'center'});
+
+    const fromDate = dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : 'N/A';
+    const toDate = dateRange?.to ? format(dateRange.to, "yyyy-MM-dd") : 'N/A';
+    doc.setFontSize(12);
+    doc.text(`الفترة: من ${fromDate} إلى ${toDate}`, 200, 20, { align: 'right' });
+
+    autoTable(doc, {
+      startY: 30,
+      head: [['', 'المبلغ']],
+      body: [
+          [{content: totalSales.toFixed(2)}, {content: 'إجمالي الإيرادات'}],
+          [{content: totalExpenses.toFixed(2)}, {content: 'إجمالي المصروفات'}],
+          [{content: netProfit.toFixed(2)}, {content: 'صافي الربح'}],
+          [{content: bankBalance.toFixed(2)}, {content: 'رصيد البنك الحالي'}],
+      ],
+      styles: { font: 'Cairo', halign: 'right' },
+      headStyles: { halign: 'right' },
+    });
+
+    autoTable(doc, {
+      startY: (doc as any).lastAutoTable.finalY + 10,
+      head: [['المبلغ', 'الوصف/الفئة', 'التاريخ', 'النوع']],
+      body: filteredTransactions.map(tx => [
+        tx.amount.toFixed(2),
+        tx.type === 'expense' ? tx.category || '-' : tx.description || '-',
+        tx.date,
+        tx.type === 'sale' ? 'مبيعات' : 'مصروفات',
+      ]),
+      styles: { font: 'Cairo', halign: 'right' },
+      headStyles: { halign: 'right' },
+    });
+
+    doc.save(`financial_report_${format(new Date(), "yyyy-MM-dd")}.pdf`);
+  };
+
   return (
     <div className="grid lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 space-y-6">
@@ -149,13 +226,13 @@ export function Reports({ branchId }: ReportsProps) {
                     <CardTitle>لوحة التقارير</CardTitle>
                     <CardDescription>نظرة شاملة على أداء المقهى المالي للفرع المحدد.</CardDescription>
                 </div>
-                <div className="grid gap-2">
+                <div className="grid gap-2 grid-cols-1 sm:grid-cols-2">
                         <Popover>
                             <PopoverTrigger asChild>
                             <Button
                                 id="date"
                                 variant={"outline"}
-                                className="w-[300px] justify-start text-left font-normal"
+                                className="w-full sm:w-[300px] justify-start text-left font-normal"
                             >
                                 <CalendarIcon className="ml-2 h-4 w-4" />
                                 {dateRange?.from ? (
@@ -184,6 +261,16 @@ export function Reports({ branchId }: ReportsProps) {
                             />
                             </PopoverContent>
                         </Popover>
+                         <div className="flex gap-2">
+                             <Button onClick={handleExportExcel} variant="outline" className="flex-1">
+                                <FileType className="h-4 w-4 ml-2" />
+                                Excel
+                            </Button>
+                             <Button onClick={handleExportPdf} variant="outline" className="flex-1">
+                                <FileDown className="h-4 w-4 ml-2" />
+                                PDF
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </CardHeader>
