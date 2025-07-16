@@ -159,14 +159,15 @@ export function Reports({ branchId }: ReportsProps) {
         [] // Empty row for spacing
     ];
     const summaryData = [
-      { البند: "إجمالي الإيرادات", المبلغ: totalSales.toFixed(2) },
-      { البند: "إجمالي المصروفات", المبلغ: totalExpenses.toFixed(2) },
-      { البند: "صافي الربح", المبلغ: netProfit.toFixed(2) },
-      { البند: "رصيد البنك (الحالي)", المبلغ: bankBalance.toFixed(2) }
+      { البند: "إجمالي الإيرادات", المبلغ: totalSales },
+      { البند: "إجمالي المصروفات", المبلغ: totalExpenses },
+      { البند: "صافي الربح", المبلغ: netProfit },
+      { البند: "رصيد البنك (الحالي)", المبلغ: bankBalance }
     ];
-    const wsSummary = XLSX.utils.json_to_sheet(summaryData, { skipHeader: true });
+    const wsSummary = XLSX.utils.json_to_sheet([], { skipHeader: true });
     XLSX.utils.sheet_add_aoa(wsSummary, summaryHeader, { origin: "A1" });
     XLSX.utils.sheet_add_json(wsSummary, summaryData, { origin: "A4" });
+    wsSummary['!cols'] = [{ wch: 25 }, { wch: 15 }];
     XLSX.utils.book_append_sheet(wb, wsSummary, "ملخص التقرير");
 
     // --- Transactions Sheet ---
@@ -181,9 +182,10 @@ export function Reports({ branchId }: ReportsProps) {
       "الوصف/الفئة": tx.type === 'expense' ? tx.category : tx.description || '-',
       "المبلغ": tx.amount
     }));
-    const wsTransactions = XLSX.utils.json_to_sheet([]);
+    const wsTransactions = XLSX.utils.json_to_sheet([], { skipHeader: true });
     XLSX.utils.sheet_add_aoa(wsTransactions, transactionsHeader, { origin: "A1" });
-    XLSX.utils.sheet_add_json(wsTransactions, transactionsData, { origin: "A4" });
+    XLSX.utils.sheet_add_json(wsTransactions, transactionsData, { origin: "A4", header: ["النوع", "التاريخ", "الوصف/الفئة", "المبلغ"] });
+    wsTransactions['!cols'] = [{ wch: 15 }, { wch: 15 }, { wch: 30 }, { wch: 15 }];
     XLSX.utils.book_append_sheet(wb, wsTransactions, "جميع المعاملات");
 
     // --- Expense Category Analysis Sheet ---
@@ -192,26 +194,33 @@ export function Reports({ branchId }: ReportsProps) {
         [periodStr],
         []
     ];
-    const expenseCatData = expenseCategoryData.map(cat => ({
+    let expenseCatData = expenseCategoryData.map(cat => ({
       "فئة المصروف": cat.name,
       "إجمالي المبلغ": cat.value
     }));
-    const wsExpenseCat = XLSX.utils.json_to_sheet([]);
+    // Add a total row
+    expenseCatData.push({
+      "فئة المصروف": "الإجمالي",
+      "إجمالي المبلغ": totalExpenses,
+    });
+    const wsExpenseCat = XLSX.utils.json_to_sheet([], { skipHeader: true });
     XLSX.utils.sheet_add_aoa(wsExpenseCat, expenseCatHeader, { origin: "A1" });
-    XLSX.utils.sheet_add_json(wsExpenseCat, expenseCatData, { origin: "A4" });
+    XLSX.utils.sheet_add_json(wsExpenseCat, expenseCatData, { origin: "A4", header: ["فئة المصروف", "إجمالي المبلغ"] });
+    wsExpenseCat['!cols'] = [{ wch: 25 }, { wch: 20 }];
+
     XLSX.utils.book_append_sheet(wb, wsExpenseCat, "تحليل المصروفات");
 
-    XLSX.writeFile(wb, `financial_report_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
+    XLSX.writeFile(wb, `financial_report_${format(new Date(), "yyyy-MM-dd")}.xlsx`, { bookType: 'xlsx', type: 'binary' });
   }
 
   const handleExportPdf = () => {
     const doc = new jsPDF();
     
-    // The font 'Cairo' is not available in jsPDF by default.
-    // To support Arabic correctly, it's better to rely on jsPDF's built-in font handling
-    // or ensure a font file is properly loaded. For now, we remove the custom font to avoid errors.
-    // doc.addFont('/Cairo-Regular.ttf', 'Cairo', 'normal');
-    // doc.setFont('Cairo');
+    // This font is required for Arabic characters. jsPDF doesn't support them well by default.
+    // However, including a font file can be complex. We'll proceed without it, 
+    // but characters might not render correctly in all PDF viewers.
+    // doc.addFont('/path/to/Amiri-Regular.ttf', 'Amiri', 'normal');
+    // doc.setFont('Amiri');
 
     doc.setRTL(true);
     doc.setFontSize(16);
@@ -232,7 +241,7 @@ export function Reports({ branchId }: ReportsProps) {
           [bankBalance.toFixed(2), 'رصيد البنك الحالي'],
       ],
       theme: 'grid',
-      styles: { halign: 'right', font: 'helvetica' }, // Using a standard font
+      styles: { halign: 'right', font: 'helvetica' }, // Use a standard font for better compatibility
       headStyles: { halign: 'right', fontStyle: 'bold', fillColor: [22, 160, 133] },
       columnStyles: { 0: { halign: 'left' } },
     });
@@ -454,5 +463,7 @@ export function Reports({ branchId }: ReportsProps) {
     </div>
   );
 }
+
+    
 
     
