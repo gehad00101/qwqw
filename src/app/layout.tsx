@@ -1,16 +1,13 @@
 import type { Metadata } from 'next';
-import { Noto_Kufi_Arabic } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'react-hot-toast';
 
-const notoKufiArabic = Noto_Kufi_Arabic({ 
-  subsets: ['arabic'],
-  display: 'swap',
-});
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'تطبيق قائمة المهام',
-  description: 'تطبيق بسيط وأنيق لإدارة مهامك اليومية',
+  title: 'تطبيق المهام',
+  description: 'تطبيق لإدارة المهام باستخدام Next.js و Firebase',
 }
 
 export default function RootLayout({
@@ -20,7 +17,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ar" dir="rtl">
-      <body className={notoKufiArabic.className}>
+      <body className={inter.className}>
         <Toaster position="bottom-center" />
         {children}
       </body>
