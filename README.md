@@ -1,4 +1,13 @@
-# Firebase Studio
+// lib/firebase.ts
+import { getFirestore } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+
+// تهيئة Firebase هنا...
+
+const db = getFirestore();
+const auth = getAuth();
+
+export { db, auth };# Firebase Studio
 
 This is a NextJS starter in Firebase Studio.
 

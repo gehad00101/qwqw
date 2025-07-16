@@ -1,42 +1,20 @@
-'use client';
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
-import { initializeApp, getApps, getApp, type FirebaseOptions } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
-
-// الصق كائن firebaseConfig الذي نسخته من لوحة تحكم Firebase هنا
-const firebaseConfig: FirebaseOptions = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID",
-  measurementId: "YOUR_MEASUREMENT_ID"
+const firebaseConfig = {
+  apiKey: "REPLACE_WITH_YOUR_API_KEY",
+  authDomain: "REPLACE_WITH_YOUR_AUTH_DOMAIN",
+  projectId: "REPLACE_WITH_YOUR_PROJECT_ID",
+  storageBucket: "REPLACE_WITH_YOUR_STORAGE_BUCKET",
+  messagingSenderId: "REPLACE_WITH_YOUR_MESSAGING_SENDER_ID",
+  appId: "REPLACE_WITH_YOUR_APP_ID",
+  measurementId: "REPLACE_WITH_YOUR_MEASUREMENT_ID"
 };
 
-// ** هام **
-// أنشئ المستخدم الأول (المالك) يدويًا في لوحة تحكم Firebase -> Authentication
-// البريد الإلكتروني للمالك: n9212993@gmail.com
-// سيتم تعيين دور "المالك" له تلقائيًا عند أول تسجيل دخول.
+// Initialize Firebase
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-let app;
-let db;
-let auth;
-
-try {
-  if (getApps().length === 0) {
-    app = initializeApp(firebaseConfig);
-  } else {
-    app = getApp();
-  }
-  
-  db = getFirestore(app);
-  auth = getAuth(app);
-
-} catch (error) {
-  console.error("Firebase initialization error:", error);
-  // في تطبيق حقيقي، يمكنك عرض رسالة خطأ للمستخدم هنا
-}
-
-export { app, db, auth };
+export { db, auth };
