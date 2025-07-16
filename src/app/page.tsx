@@ -13,7 +13,7 @@ import {
   serverTimestamp,
   orderBy,
 } from "firebase/firestore";
-import { db, auth } from "@/lib/firebase"; // Corrected import path
+import { db, auth } from "@/lib/firebase";
 import { onAuthStateChanged, User, signInAnonymously } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
 
 interface Todo {
@@ -50,10 +49,10 @@ export default function Home() {
         setUser(currentUser);
       } else {
         signInAnonymously(auth).catch((error) => {
-          console.error("Error signing in anonymously: ", error);
+          console.error("خطأ في تسجيل الدخول المجهول: ", error);
           toast({
-            title: "Authentication Error",
-            description: "Could not sign in anonymously.",
+            title: "خطأ في المصادقة",
+            description: "لا يمكن تسجيل الدخول كمستخدم مجهول.",
             variant: "destructive",
           });
         });
@@ -65,7 +64,11 @@ export default function Home() {
 
   useEffect(() => {
     if (user) {
-      const q = query(collection(db, "todos"), where("userId", "==", user.uid), orderBy("createdAt", "desc"));
+      const q = query(
+        collection(db, "todos"),
+        where("userId", "==", user.uid),
+        orderBy("createdAt", "desc")
+      );
       const unsubscribe = onSnapshot(
         q,
         (querySnapshot) => {
@@ -76,10 +79,10 @@ export default function Home() {
           setTodos(todosData);
         },
         (error) => {
-          console.error("Error fetching todos: ", error);
+          console.error("خطأ في جلب المهام: ", error);
           toast({
-            title: "Error",
-            description: "Failed to fetch todos.",
+            title: "خطأ",
+            description: "فشل في جلب قائمة المهام.",
             variant: "destructive",
           });
         }
@@ -93,16 +96,16 @@ export default function Home() {
     e.preventDefault();
     if (newTodo.trim() === "") {
       toast({
-        title: "Input Error",
-        description: "Todo item cannot be empty.",
+        title: "خطأ في الإدخال",
+        description: "لا يمكن أن تكون المهمة فارغة.",
         variant: "destructive",
       });
       return;
     }
     if (!user) {
       toast({
-        title: "Authentication Error",
-        description: "You must be logged in to add a todo.",
+        title: "خطأ في المصادقة",
+        description: "يجب تسجيل الدخول لإضافة مهمة.",
         variant: "destructive",
       });
       return;
@@ -117,14 +120,14 @@ export default function Home() {
       });
       setNewTodo("");
       toast({
-        title: "Success",
-        description: "Todo added successfully.",
+        title: "نجاح",
+        description: "تمت إضافة المهمة بنجاح.",
       });
     } catch (error) {
-      console.error("Error adding document: ", error);
+      console.error("خطأ في إضافة المستند: ", error);
       toast({
-        title: "Error",
-        description: "Failed to add todo.",
+        title: "خطأ",
+        description: "فشل في إضافة المهمة.",
         variant: "destructive",
       });
     }
@@ -136,14 +139,16 @@ export default function Home() {
         completed: !todo.completed,
       });
       toast({
-        title: "Success",
-        description: `Todo marked as ${!todo.completed ? "complete" : "incomplete"}.`,
+        title: "نجاح",
+        description: `تم تحديد المهمة كـ ${
+          !todo.completed ? "مكتملة" : "غير مكتملة"
+        }.`,
       });
     } catch (error) {
-      console.error("Error updating document: ", error);
+      console.error("خطأ في تحديث المستند: ", error);
       toast({
-        title: "Error",
-        description: "Failed to update todo.",
+        title: "خطأ",
+        description: "فشل في تحديث المهمة.",
         variant: "destructive",
       });
     }
@@ -153,14 +158,14 @@ export default function Home() {
     try {
       await deleteDoc(doc(db, "todos", id));
       toast({
-        title: "Success",
-        description: "Todo deleted successfully.",
+        title: "نجاح",
+        description: "تم حذف المهمة بنجاح.",
       });
     } catch (error) {
-      console.error("Error deleting document: ", error);
+      console.error("خطأ في حذف المستند: ", error);
       toast({
-        title: "Error",
-        description: "Failed to delete todo.",
+        title: "خطأ",
+        description: "فشل في حذف المهمة.",
         variant: "destructive",
       });
     }
@@ -179,27 +184,27 @@ export default function Home() {
   const saveEdit = async (id: string) => {
     if (editingText.trim() === "") {
       toast({
-        title: "Input Error",
-        description: "Todo cannot be empty.",
+        title: "خطأ في الإدخال",
+        description: "لا يمكن أن تكون المهمة فارغة.",
         variant: "destructive",
       });
       return;
     }
-    
+
     try {
       await updateDoc(doc(db, "todos", id), {
         text: editingText,
       });
       toast({
-        title: "Success",
-        description: "Todo updated successfully.",
+        title: "نجاح",
+        description: "تم تحديث المهمة بنجاح.",
       });
       cancelEditing();
     } catch (error) {
-      console.error("Error updating document: ", error);
+      console.error("خطأ في تحديث المستند: ", error);
       toast({
-        title: "Error",
-        description: "Failed to update todo.",
+        title: "خطأ",
+        description: "فشل في تحديث المهمة.",
         variant: "destructive",
       });
     }
@@ -212,10 +217,10 @@ export default function Home() {
           <Card className="bg-white dark:bg-gray-800 shadow-xl rounded-lg">
             <CardHeader>
               <CardTitle className="text-3xl font-bold text-center text-gray-800 dark:text-gray-100">
-                My To-Do List
+                قائمة المهام
               </CardTitle>
               <CardDescription className="text-center">
-                What do you need to get done today?
+                ما الذي تريد إنجازه اليوم؟
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6">
@@ -224,10 +229,10 @@ export default function Home() {
                   type="text"
                   value={newTodo}
                   onChange={(e) => setNewTodo(e.target.value)}
-                  className="flex-grow"
-                  placeholder="Add a new task"
+                  className="flex-grow text-right"
+                  placeholder="أضف مهمة جديدة"
                 />
-                <Button type="submit">Add</Button>
+                <Button type="submit">إضافة</Button>
               </form>
               <ul className="space-y-2">
                 {todos.map((todo) => (
@@ -243,6 +248,7 @@ export default function Home() {
                       id={`check-${todo.id}`}
                       checked={todo.completed}
                       onCheckedChange={() => toggleComplete(todo)}
+                      className="ml-4"
                     />
                     {editingTodoId === todo.id ? (
                       <Input
@@ -268,14 +274,14 @@ export default function Home() {
                         {todo.text}
                       </label>
                     )}
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 mr-auto">
                       {editingTodoId !== todo.id && (
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => startEditing(todo)}
                         >
-                          Edit
+                          تعديل
                         </Button>
                       )}
                       <Button
@@ -283,7 +289,7 @@ export default function Home() {
                         size="sm"
                         onClick={() => handleDelete(todo.id)}
                       >
-                        Delete
+                        حذف
                       </Button>
                     </div>
                   </li>
