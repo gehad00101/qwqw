@@ -213,56 +213,76 @@ export function Reports({ branchId }: ReportsProps) {
     XLSX.writeFile(wb, `financial_report_${format(new Date(), "yyyy-MM-dd")}.xlsx`, { bookType: 'xlsx', type: 'binary' });
   }
 
-  const handleExportPdf = () => {
+  const handleExportPdf = async () => {
     const doc = new jsPDF();
     
-    // This font is required for Arabic characters. jsPDF doesn't support them well by default.
-    // However, including a font file can be complex. We'll proceed without it, 
-    // but characters might not render correctly in all PDF viewers.
-    // doc.addFont('/path/to/Amiri-Regular.ttf', 'Amiri', 'normal');
-    // doc.setFont('Amiri');
-
+    // Add Amiri font for Arabic support
+    // The font is simplified and embedded as base64 to avoid fetching external files.
+    // This is a common practice for jsPDF with custom fonts.
+    // In a real-world scenario, you might host the font file and fetch it.
+    try {
+        const font = await import("@/lib/amiri-font");
+        doc.addFileToVFS("Amiri-Regular.ttf", font.default);
+        doc.addFont("Amiri-Regular.ttf", "Amiri", "normal");
+        doc.setFont("Amiri");
+    } catch (e) {
+        console.error("Font could not be loaded, falling back to default.", e);
+        // Fallback to a default font if Amiri can't be loaded.
+        // Note: Arabic might not render correctly with default fonts.
+    }
+    
     doc.setRTL(true);
-    doc.setFontSize(16);
-    doc.text("تقرير مالي", 105, 15, {align: 'center'});
-
     const fromDate = dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : 'N/A';
     const toDate = dateRange?.to ? format(dateRange.to, "yyyy-MM-dd") : 'N/A';
-    doc.setFontSize(10);
-    doc.text(`الفترة: من ${fromDate} إلى ${toDate}`, 200, 25, { align: 'right' });
+    const pageTitle = "تقرير مالي";
+    const periodString = `الفترة: من ${fromDate} إلى ${toDate}`;
 
+    // --- Report Header ---
+    doc.setFontSize(22);
+    doc.text(pageTitle, doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
+    doc.setFontSize(12);
+    doc.text(periodString, doc.internal.pageSize.getWidth() - 14, 30, { align: 'right' });
+    
+    // --- Summary Table ---
     autoTable(doc, {
-      startY: 30,
-      head: [['المبلغ', 'البند']],
-      body: [
-          [totalSales.toFixed(2), 'إجمالي الإيرادات'],
-          [totalExpenses.toFixed(2), 'إجمالي المصروفات'],
-          [netProfit.toFixed(2), 'صافي الربح'],
-          [bankBalance.toFixed(2), 'رصيد البنك الحالي'],
-      ],
-      theme: 'grid',
-      styles: { halign: 'right', font: 'helvetica' }, // Use a standard font for better compatibility
-      headStyles: { halign: 'right', fontStyle: 'bold', fillColor: [22, 160, 133] },
-      columnStyles: { 0: { halign: 'left' } },
+        startY: 40,
+        head: [['المبلغ', 'البند']],
+        body: [
+            [totalSales.toFixed(2), 'إجمالي الإيرادات'],
+            [totalExpenses.toFixed(2), 'إجمالي المصروفات'],
+            [`${netProfit.toFixed(2)}`, 'صافي الربح'],
+            [bankBalance.toFixed(2), 'رصيد البنك الحالي'],
+        ],
+        theme: 'grid',
+        styles: { halign: 'right', font: 'Amiri', fontStyle: 'normal' },
+        headStyles: { halign: 'right', fontStyle: 'bold', fillColor: [41, 128, 185], textColor: 255 },
+        columnStyles: { 0: { halign: 'left' } },
     });
 
     let lastY = (doc as any).lastAutoTable.finalY;
-    doc.setFontSize(12);
-    doc.text("تفاصيل المعاملات", 200, lastY + 10, {align: 'right'});
-
+    
+    // --- Transactions Table ---
+    doc.setFontSize(16);
+    doc.text("تفاصيل المعاملات", doc.internal.pageSize.getWidth() - 14, lastY + 15, { align: 'right' });
     autoTable(doc, {
-      startY: lastY + 15,
-      head: [['المبلغ', 'الوصف/الفئة', 'التاريخ', 'النوع']],
-      body: filteredTransactions.map(tx => [
-        tx.amount.toFixed(2),
-        tx.type === 'expense' ? tx.category || '-' : tx.description || '-',
-        tx.date,
-        tx.type === 'sale' ? 'مبيعات' : 'مصروفات',
-      ]),
-      theme: 'striped',
-      styles: { halign: 'right', font: 'helvetica' },
-      headStyles: { halign: 'right', fontStyle: 'bold' },
-      columnStyles: { 0: { halign: 'left' } },
+        startY: lastY + 20,
+        head: [['المبلغ', 'الوصف/الفئة', 'التاريخ', 'النوع']],
+        body: filteredTransactions.map(tx => [
+            tx.amount.toFixed(2),
+            tx.type === 'expense' ? tx.category || '-' : tx.description || '-',
+            tx.date,
+            tx.type === 'sale' ? 'مبيعات' : 'مصروفات',
+        ]),
+        theme: 'striped',
+        styles: { halign: 'right', font: 'Amiri', fontStyle: 'normal' },
+        headStyles: { halign: 'right', fontStyle: 'bold', fillColor: [44, 62, 80], textColor: 255 },
+        columnStyles: { 0: { halign: 'left' } },
+        didParseCell: function(data) {
+            // Reverse text for correct RTL rendering in some viewers
+            if (typeof data.cell.text[0] === 'string') {
+                 data.cell.text[0] = data.cell.text[0].split('').reverse().join('');
+            }
+        }
     });
 
     doc.save(`financial_report_${format(new Date(), "yyyy-MM-dd")}.pdf`);
@@ -463,7 +483,3 @@ export function Reports({ branchId }: ReportsProps) {
     </div>
   );
 }
-
-    
-
-    
