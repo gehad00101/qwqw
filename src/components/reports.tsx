@@ -12,7 +12,7 @@ import { collection, query, onSnapshot, orderBy, where, doc } from "firebase/fir
 import { useToast } from "@/hooks/use-toast";
 import { Calendar as CalendarIcon, FileDown, FileType } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Pie, Cell, ResponsiveContainer, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, LineChart as RechartsLineChart, PieChart as RechartsPieChart } from 'recharts';
+import { Pie, Cell, ResponsiveContainer, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, LineChart, PieChart } from 'recharts';
 import { format, subDays } from "date-fns";
 import { ar } from "date-fns/locale";
 import type { DateRange } from "react-day-picker";
@@ -148,37 +148,57 @@ export function Reports({ branchId }: ReportsProps) {
 
   const handleExportExcel = () => {
     const wb = XLSX.utils.book_new();
+    const fromDateStr = dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : 'N/A';
+    const toDateStr = dateRange?.to ? format(dateRange.to, "yyyy-MM-dd") : 'N/A';
+    const periodStr = `الفترة من ${fromDateStr} إلى ${toDateStr}`;
     
-    // Summary Sheet
-    const summaryData = [
-      ["تقرير ملخص", ""],
-      ["الفترة من", dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : 'N/A'],
-      ["الفترة إلى", dateRange?.to ? format(dateRange.to, "yyyy-MM-dd") : 'N/A'],
-      ["", ""],
-      ["إجمالي الإيرادات", totalSales.toFixed(2)],
-      ["إجمالي المصروفات", totalExpenses.toFixed(2)],
-      ["صافي الربح", netProfit.toFixed(2)],
-      ["رصيد البنك (الحالي)", bankBalance.toFixed(2)]
+    // --- Summary Sheet ---
+    const summaryHeader = [
+        ["تقرير مالي ملخص"],
+        [periodStr],
+        [] // Empty row for spacing
     ];
-    const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+    const summaryData = [
+      { البند: "إجمالي الإيرادات", المبلغ: totalSales.toFixed(2) },
+      { البند: "إجمالي المصروفات", المبلغ: totalExpenses.toFixed(2) },
+      { البند: "صافي الربح", المبلغ: netProfit.toFixed(2) },
+      { البند: "رصيد البنك (الحالي)", المبلغ: bankBalance.toFixed(2) }
+    ];
+    const wsSummary = XLSX.utils.json_to_sheet(summaryData, { skipHeader: true });
+    XLSX.utils.sheet_add_aoa(wsSummary, summaryHeader, { origin: "A1" });
+    XLSX.utils.sheet_add_json(wsSummary, summaryData, { origin: "A4" });
     XLSX.utils.book_append_sheet(wb, wsSummary, "ملخص التقرير");
 
-    // Transactions Sheet
+    // --- Transactions Sheet ---
+    const transactionsHeader = [
+        ["تقرير جميع المعاملات"],
+        [periodStr],
+        []
+    ];
     const transactionsData = filteredTransactions.map(tx => ({
       "النوع": tx.type === 'sale' ? 'مبيعات' : 'مصروفات',
       "التاريخ": tx.date,
       "الوصف/الفئة": tx.type === 'expense' ? tx.category : tx.description || '-',
-      "المبلغ": tx.amount.toFixed(2)
+      "المبلغ": tx.amount
     }));
-    const wsTransactions = XLSX.utils.json_to_sheet(transactionsData);
+    const wsTransactions = XLSX.utils.json_to_sheet([]);
+    XLSX.utils.sheet_add_aoa(wsTransactions, transactionsHeader, { origin: "A1" });
+    XLSX.utils.sheet_add_json(wsTransactions, transactionsData, { origin: "A4" });
     XLSX.utils.book_append_sheet(wb, wsTransactions, "جميع المعاملات");
 
-    // Expense Category Analysis Sheet
+    // --- Expense Category Analysis Sheet ---
+    const expenseCatHeader = [
+        ["تقرير تحليل المصروفات حسب الفئة"],
+        [periodStr],
+        []
+    ];
     const expenseCatData = expenseCategoryData.map(cat => ({
       "فئة المصروف": cat.name,
-      "إجمالي المبلغ": cat.value.toFixed(2)
+      "إجمالي المبلغ": cat.value
     }));
-    const wsExpenseCat = XLSX.utils.json_to_sheet(expenseCatData);
+    const wsExpenseCat = XLSX.utils.json_to_sheet([]);
+    XLSX.utils.sheet_add_aoa(wsExpenseCat, expenseCatHeader, { origin: "A1" });
+    XLSX.utils.sheet_add_json(wsExpenseCat, expenseCatData, { origin: "A4" });
     XLSX.utils.book_append_sheet(wb, wsExpenseCat, "تحليل المصروفات");
 
     XLSX.writeFile(wb, `financial_report_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
@@ -351,7 +371,7 @@ export function Reports({ branchId }: ReportsProps) {
                 <CardContent>
                     <ChartContainer config={{}} className="h-[250px] w-full">
                         <ResponsiveContainer>
-                            <RechartsLineChart data={monthlyData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                            <LineChart data={monthlyData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                                 <CartesianGrid strokeDasharray="3 3" />
                                 <XAxis dataKey="name" />
                                 <YAxis />
@@ -359,7 +379,7 @@ export function Reports({ branchId }: ReportsProps) {
                                 <Legend />
                                 <Line type="monotone" dataKey="المبيعات" stroke="#22c55e" activeDot={{ r: 8 }} />
                                 <Line type="monotone" dataKey="المصروفات" stroke="#ef4444" />
-                            </RechartsLineChart>
+                            </LineChart>
                         </ResponsiveContainer>
                     </ChartContainer>
                 </CardContent>
@@ -372,7 +392,7 @@ export function Reports({ branchId }: ReportsProps) {
                 <CardContent className="flex justify-center">
                     <ChartContainer config={{}} className="h-[250px] w-full">
                         <ResponsiveContainer>
-                            <RechartsPieChart>
+                            <PieChart>
                                 <RechartsTooltip content={<ChartTooltipContent nameKey="name" />} />
                                 <Legend />
                                 <Pie data={expenseCategoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} fill="#8884d8" label>
@@ -380,7 +400,7 @@ export function Reports({ branchId }: ReportsProps) {
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                     ))}
                                 </Pie>
-                            </RechartsPieChart>
+                            </PieChart>
                         </ResponsiveContainer>
                     </ChartContainer>
                 </CardContent>
@@ -434,3 +454,5 @@ export function Reports({ branchId }: ReportsProps) {
     </div>
   );
 }
+
+    
