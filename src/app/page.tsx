@@ -25,7 +25,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "react-hot-toast";
+
 
 interface Todo {
   id: string;
@@ -41,7 +42,6 @@ export default function Home() {
   const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
   const [user, setUser] = useState<User | null>(null);
-  const { toast } = useToast();
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
@@ -50,17 +50,13 @@ export default function Home() {
       } else {
         signInAnonymously(auth).catch((error) => {
           console.error("خطأ في تسجيل الدخول المجهول: ", error);
-          toast({
-            title: "خطأ في المصادقة",
-            description: "لا يمكن تسجيل الدخول كمستخدم مجهول.",
-            variant: "destructive",
-          });
+          toast.error("لا يمكن تسجيل الدخول كمستخدم مجهول.");
         });
       }
     });
 
     return () => unsubscribeAuth();
-  }, [toast]);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -80,34 +76,22 @@ export default function Home() {
         },
         (error) => {
           console.error("خطأ في جلب المهام: ", error);
-          toast({
-            title: "خطأ",
-            description: "فشل في جلب قائمة المهام.",
-            variant: "destructive",
-          });
+          toast.error("فشل في جلب قائمة المهام.");
         }
       );
 
       return () => unsubscribe();
     }
-  }, [user, toast]);
+  }, [user]);
 
   const handleAddTodo = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newTodo.trim() === "") {
-      toast({
-        title: "خطأ في الإدخال",
-        description: "لا يمكن أن تكون المهمة فارغة.",
-        variant: "destructive",
-      });
+      toast.error("لا يمكن أن تكون المهمة فارغة.");
       return;
     }
     if (!user) {
-      toast({
-        title: "خطأ في المصادقة",
-        description: "يجب تسجيل الدخول لإضافة مهمة.",
-        variant: "destructive",
-      });
+      toast.error("يجب تسجيل الدخول لإضافة مهمة.");
       return;
     }
 
@@ -119,17 +103,10 @@ export default function Home() {
         userId: user.uid,
       });
       setNewTodo("");
-      toast({
-        title: "نجاح",
-        description: "تمت إضافة المهمة بنجاح.",
-      });
+      toast.success("تمت إضافة المهمة بنجاح.");
     } catch (error) {
       console.error("خطأ في إضافة المستند: ", error);
-      toast({
-        title: "خطأ",
-        description: "فشل في إضافة المهمة.",
-        variant: "destructive",
-      });
+      toast.error("فشل في إضافة المهمة.");
     }
   };
 
@@ -138,36 +115,22 @@ export default function Home() {
       await updateDoc(doc(db, "todos", todo.id), {
         completed: !todo.completed,
       });
-      toast({
-        title: "نجاح",
-        description: `تم تحديد المهمة كـ ${
+      toast.success(`تم تحديد المهمة كـ ${
           !todo.completed ? "مكتملة" : "غير مكتملة"
-        }.`,
-      });
+        }.`);
     } catch (error) {
       console.error("خطأ في تحديث المستند: ", error);
-      toast({
-        title: "خطأ",
-        description: "فشل في تحديث المهمة.",
-        variant: "destructive",
-      });
+      toast.error("فشل في تحديث المهمة.");
     }
   };
 
   const handleDelete = async (id: string) => {
     try {
       await deleteDoc(doc(db, "todos", id));
-      toast({
-        title: "نجاح",
-        description: "تم حذف المهمة بنجاح.",
-      });
+      toast.success("تم حذف المهمة بنجاح.");
     } catch (error) {
       console.error("خطأ في حذف المستند: ", error);
-      toast({
-        title: "خطأ",
-        description: "فشل في حذف المهمة.",
-        variant: "destructive",
-      });
+      toast.error("فشل في حذف المهمة.");
     }
   };
 
@@ -183,11 +146,7 @@ export default function Home() {
 
   const saveEdit = async (id: string) => {
     if (editingText.trim() === "") {
-      toast({
-        title: "خطأ في الإدخال",
-        description: "لا يمكن أن تكون المهمة فارغة.",
-        variant: "destructive",
-      });
+      toast.error("لا يمكن أن تكون المهمة فارغة.");
       return;
     }
 
@@ -195,18 +154,11 @@ export default function Home() {
       await updateDoc(doc(db, "todos", id), {
         text: editingText,
       });
-      toast({
-        title: "نجاح",
-        description: "تم تحديث المهمة بنجاح.",
-      });
+      toast.success("تم تحديث المهمة بنجاح.");
       cancelEditing();
     } catch (error) {
       console.error("خطأ في تحديث المستند: ", error);
-      toast({
-        title: "خطأ",
-        description: "فشل في تحديث المهمة.",
-        variant: "destructive",
-      });
+      toast.error("فشل في تحديث المهمة.");
     }
   };
 

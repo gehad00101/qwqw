@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Noto_Kufi_Arabic } from 'next/font/google';
 import './globals.css';
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from 'react-hot-toast';
 
 const notoKufiArabic = Noto_Kufi_Arabic({ 
   subsets: ['arabic'],
@@ -21,8 +21,8 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl">
       <body className={notoKufiArabic.className}>
+        <Toaster position="bottom-center" />
         {children}
-        <Toaster />
       </body>
     </html>
   )
