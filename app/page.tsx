@@ -35,8 +35,6 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "react-hot-toast";
-import { Toaster } from 'react-hot-toast';
-
 
 interface Todo {
   id: string;
@@ -86,7 +84,7 @@ export default function Home() {
     }
   }, [user]);
 
-  const handleAddTodo = async (e: React.FormEvent) => {
+  const addTodo = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     if (newTodo.trim() === "") {
       toast.error("Todo item cannot be empty.");
@@ -194,22 +192,21 @@ export default function Home() {
   };
 
    return (
-    <>
-    <Toaster />
     <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 md:p-24 bg-gray-100 dark:bg-gray-900">
       <div className="w-full max-w-2xl">
         <div className="bg-white dark:bg-gray-800 shadow-xl rounded-lg p-6">
           <h1 className="text-3xl font-bold mb-6 text-center text-gray-800 dark:text-gray-100">My To-Do List</h1>
-          <form onSubmit={handleAddTodo} className="flex gap-2 mb-4">
+          <div className="flex gap-2 mb-4">
             <Input
               type="text"
               value={newTodo}
               onChange={(e) => setNewTodo(e.target.value)}
               className="flex-grow"
               placeholder="Add a new task"
+              onKeyPress={(e) => e.key === 'Enter' && addTodo(e as any)}
             />
-            <Button type="submit">Add</Button>
-          </form>
+            <Button onClick={addTodo}>Add</Button>
+          </div>
           <ul className="space-y-2">
             {todos.sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1)).map((todo) => (
               <li
@@ -254,6 +251,5 @@ export default function Home() {
         </div>
       </div>
     </main>
-    </>
    );
  }
