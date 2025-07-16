@@ -98,6 +98,10 @@ export function Reports({ branchId }: ReportsProps) {
     const fromDate = dateRange.from;
     const toDate = dateRange.to || fromDate; // Use fromDate if to is not selected
     
+    // Set time to beginning and end of day for accurate comparison
+    fromDate.setHours(0, 0, 0, 0);
+    toDate.setHours(23, 59, 59, 999);
+
     return allTransactions.filter(tx => {
         const txDate = new Date(tx.date);
         return txDate >= fromDate && txDate <= toDate;
@@ -151,10 +155,10 @@ export function Reports({ branchId }: ReportsProps) {
       ["الفترة من", dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : 'N/A'],
       ["الفترة إلى", dateRange?.to ? format(dateRange.to, "yyyy-MM-dd") : 'N/A'],
       ["", ""],
-      ["إجمالي الإيرادات", totalSales],
-      ["إجمالي المصروفات", totalExpenses],
-      ["صافي الربح", netProfit],
-      ["رصيد البنك (الحالي)", bankBalance]
+      ["إجمالي الإيرادات", totalSales.toFixed(2)],
+      ["إجمالي المصروفات", totalExpenses.toFixed(2)],
+      ["صافي الربح", netProfit.toFixed(2)],
+      ["رصيد البنك (الحالي)", bankBalance.toFixed(2)]
     ];
     const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
     XLSX.utils.book_append_sheet(wb, wsSummary, "ملخص التقرير");
@@ -164,44 +168,61 @@ export function Reports({ branchId }: ReportsProps) {
       "النوع": tx.type === 'sale' ? 'مبيعات' : 'مصروفات',
       "التاريخ": tx.date,
       "الوصف/الفئة": tx.type === 'expense' ? tx.category : tx.description || '-',
-      "المبلغ": tx.amount
+      "المبلغ": tx.amount.toFixed(2)
     }));
     const wsTransactions = XLSX.utils.json_to_sheet(transactionsData);
     XLSX.utils.book_append_sheet(wb, wsTransactions, "جميع المعاملات");
+
+    // Expense Category Analysis Sheet
+    const expenseCatData = expenseCategoryData.map(cat => ({
+      "فئة المصروف": cat.name,
+      "إجمالي المبلغ": cat.value.toFixed(2)
+    }));
+    const wsExpenseCat = XLSX.utils.json_to_sheet(expenseCatData);
+    XLSX.utils.book_append_sheet(wb, wsExpenseCat, "تحليل المصروفات");
 
     XLSX.writeFile(wb, `financial_report_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
   }
 
   const handleExportPdf = () => {
     const doc = new jsPDF();
-
-    // Add Right-to-Left font support
-    doc.addFont('/Cairo-Regular.ttf', 'Cairo', 'normal');
-    doc.setFont('Cairo');
+    
+    // The font 'Cairo' is not available in jsPDF by default.
+    // To support Arabic correctly, it's better to rely on jsPDF's built-in font handling
+    // or ensure a font file is properly loaded. For now, we remove the custom font to avoid errors.
+    // doc.addFont('/Cairo-Regular.ttf', 'Cairo', 'normal');
+    // doc.setFont('Cairo');
 
     doc.setRTL(true);
-    doc.text("تقرير مالي", 105, 10, {align: 'center'});
+    doc.setFontSize(16);
+    doc.text("تقرير مالي", 105, 15, {align: 'center'});
 
     const fromDate = dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : 'N/A';
     const toDate = dateRange?.to ? format(dateRange.to, "yyyy-MM-dd") : 'N/A';
-    doc.setFontSize(12);
-    doc.text(`الفترة: من ${fromDate} إلى ${toDate}`, 200, 20, { align: 'right' });
+    doc.setFontSize(10);
+    doc.text(`الفترة: من ${fromDate} إلى ${toDate}`, 200, 25, { align: 'right' });
 
     autoTable(doc, {
       startY: 30,
-      head: [['', 'المبلغ']],
+      head: [['المبلغ', 'البند']],
       body: [
-          [{content: totalSales.toFixed(2)}, {content: 'إجمالي الإيرادات'}],
-          [{content: totalExpenses.toFixed(2)}, {content: 'إجمالي المصروفات'}],
-          [{content: netProfit.toFixed(2)}, {content: 'صافي الربح'}],
-          [{content: bankBalance.toFixed(2)}, {content: 'رصيد البنك الحالي'}],
+          [totalSales.toFixed(2), 'إجمالي الإيرادات'],
+          [totalExpenses.toFixed(2), 'إجمالي المصروفات'],
+          [netProfit.toFixed(2), 'صافي الربح'],
+          [bankBalance.toFixed(2), 'رصيد البنك الحالي'],
       ],
-      styles: { font: 'Cairo', halign: 'right' },
-      headStyles: { halign: 'right' },
+      theme: 'grid',
+      styles: { halign: 'right', font: 'helvetica' }, // Using a standard font
+      headStyles: { halign: 'right', fontStyle: 'bold', fillColor: [22, 160, 133] },
+      columnStyles: { 0: { halign: 'left' } },
     });
 
+    let lastY = (doc as any).lastAutoTable.finalY;
+    doc.setFontSize(12);
+    doc.text("تفاصيل المعاملات", 200, lastY + 10, {align: 'right'});
+
     autoTable(doc, {
-      startY: (doc as any).lastAutoTable.finalY + 10,
+      startY: lastY + 15,
       head: [['المبلغ', 'الوصف/الفئة', 'التاريخ', 'النوع']],
       body: filteredTransactions.map(tx => [
         tx.amount.toFixed(2),
@@ -209,8 +230,10 @@ export function Reports({ branchId }: ReportsProps) {
         tx.date,
         tx.type === 'sale' ? 'مبيعات' : 'مصروفات',
       ]),
-      styles: { font: 'Cairo', halign: 'right' },
-      headStyles: { halign: 'right' },
+      theme: 'striped',
+      styles: { halign: 'right', font: 'helvetica' },
+      headStyles: { halign: 'right', fontStyle: 'bold' },
+      columnStyles: { 0: { halign: 'left' } },
     });
 
     doc.save(`financial_report_${format(new Date(), "yyyy-MM-dd")}.pdf`);
