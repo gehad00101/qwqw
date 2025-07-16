@@ -1,4 +1,3 @@
-
 "use client"
 import { useState, useEffect, useCallback } from 'react';
 import {
@@ -34,7 +33,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { toast } from "react-hot-toast";
+import { toast, Toaster } from "react-hot-toast";
 
 interface Todo {
   id: string;
@@ -84,7 +83,7 @@ export default function Home() {
     }
   }, [user]);
 
-  const addTodo = async (e: React.MouseEvent<HTMLButtonElement>) => {
+  const addTodo = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (newTodo.trim() === "") {
       toast.error("Todo item cannot be empty.");
@@ -95,15 +94,6 @@ export default function Home() {
         return;
     }
 
-    const optimisticTodo: Todo = {
-      id: `temp-${Date.now()}`,
-      text: newTodo,
-      completed: false,
-      userId: user.uid
-    };
-    setTodos(prevTodos => [...prevTodos, optimisticTodo]);
-    setNewTodo("");
-
     try {
       await addDoc(collection(db, "todos"), {
         text: newTodo,
@@ -112,10 +102,10 @@ export default function Home() {
         userId: user.uid,
       });
       toast.success("Todo added!");
+      setNewTodo("");
     } catch (error) {
       console.error("Error adding document: ", error);
       toast.error("Failed to add todo.");
-      setTodos(todos => todos.filter(t => t.id !== optimisticTodo.id));
     }
   };
 
@@ -141,30 +131,7 @@ export default function Home() {
     }
   };
 
-  const handleEdit = (todo: Todo) => {
-    setEditingTodoId(todo.id);
-    setEditingText(todo.text);
-  };
-
- const handleUpdate = async () => {
-    if (editingTodoId && editingText.trim() !== '') {
-      try {
-        await updateDoc(doc(db, 'todos', editingTodoId), {
-          text: editingText
-        });
-        toast.success("Todo updated!");
-        setEditingTodoId(null);
-        setEditingText('');
-      } catch (error) {
-        console.error("Error updating document: ", error);
-        toast.error("Failed to update todo.");
-      }
-    } else {
-      toast.error("Todo cannot be empty.");
-    }
- };
- 
-   const startEditing = (todo: Todo) => {
+  const startEditing = (todo: Todo) => {
     setEditingTodoId(todo.id);
     setEditingText(todo.text);
   };
@@ -193,22 +160,22 @@ export default function Home() {
 
    return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 md:p-24 bg-gray-100 dark:bg-gray-900">
+       <Toaster/>
       <div className="w-full max-w-2xl">
         <div className="bg-white dark:bg-gray-800 shadow-xl rounded-lg p-6">
           <h1 className="text-3xl font-bold mb-6 text-center text-gray-800 dark:text-gray-100">My To-Do List</h1>
-          <div className="flex gap-2 mb-4">
+          <form onSubmit={addTodo} className="flex gap-2 mb-4">
             <Input
               type="text"
               value={newTodo}
               onChange={(e) => setNewTodo(e.target.value)}
               className="flex-grow"
               placeholder="Add a new task"
-              onKeyPress={(e) => e.key === 'Enter' && addTodo(e as any)}
             />
-            <Button onClick={addTodo}>Add</Button>
-          </div>
+            <Button type="submit">Add</Button>
+          </form>
           <ul className="space-y-2">
-            {todos.sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1)).map((todo) => (
+            {todos.sort((a, b) => (a.createdAt > b.createdAt ? -1 : 1)).map((todo) => (
               <li
                  key={todo.id}
                 className={`flex items-center p-3 rounded-md transition-all duration-200 ${
