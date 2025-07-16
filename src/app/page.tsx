@@ -104,7 +104,7 @@ export default function Home() {
       });
       setNewTodo("");
       toast.success("تمت إضافة المهمة بنجاح.");
-    } catch (error) {
+    } catch (error) => {
       console.error("خطأ في إضافة المستند: ", error);
       toast.error("فشل في إضافة المهمة.");
     }
